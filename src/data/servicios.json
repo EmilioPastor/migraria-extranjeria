@@ -1,0 +1,51 @@
+[
+  {
+    "id": "situacion-espana",
+    "title": "Situación administrativa en España",
+    "description": "Procedimientos aplicables a personas extranjeras que ya se encuentran en España y necesitan regularizar, modificar o renovar su situación administrativa.",
+    "items": [
+      {
+        "label": "Arraigo social",
+        "href": "/servicios/regimen-general/arraigo-social"
+      },
+      {
+        "label": "Arraigo socioformativo",
+        "href": "/servicios/regimen-general/arraigo-socioformativo"
+      },
+      {
+        "label": "Residencia y trabajo",
+        "href": "/servicios/regimen-general/residencia-y-trabajo"
+      },
+      {
+        "label": "Reagrupación familiar",
+        "href": "/servicios/regimen-general/reagrupacion-familiar"
+      }
+    ]
+  },
+  {
+    "id": "nacionalidad",
+    "title": "Nacionalidad y vínculos con España",
+    "description": "Procedimientos relacionados con la adquisición de la nacionalidad española y otros supuestos basados en vínculos personales o familiares.",
+    "items": [
+      {
+        "label": "Nacionalidad española",
+        "href": "/servicios/regimen-general/nacionalidad"
+      }
+    ]
+  },
+  {
+    "id": "movilidad-profesional",
+    "title": "Movilidad internacional y perfiles profesionales",
+    "description": "Autorizaciones reguladas por normativa especial para perfiles profesionales concretos o situaciones laborales específicas.",
+    "items": [
+      {
+        "label": "Nómada digital",
+        "href": "/servicios/regimen-especial/nomada-digital"
+      },
+      {
+        "label": "Profesional altamente cualificado",
+        "href": "/servicios/regimen-especial/pac"
+      }
+    ]
+  }
+]

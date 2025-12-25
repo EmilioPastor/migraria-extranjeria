@@ -1,0 +1,80 @@
+{
+  "arraigo-social": {
+    "tipoCita": "extranjeria",
+    "title": "Arraigo social",
+    "intro": "Procedimiento de regularización por circunstancias excepcionales para personas que acreditan permanencia continuada en España y vínculos sociales o laborales.",
+    "items": [
+      "Pasaporte completo en vigor",
+      "Certificado de empadronamiento",
+      "Certificado de antecedentes penales",
+      "Oferta o contrato de trabajo",
+      "Informe de inserción social"
+    ]
+  },
+  "arraigo-socioformativo": {
+    "tipoCita": "extranjeria",
+    "title": "Arraigo socioformativo",
+    "intro": "Autorización de residencia por circunstancias excepcionales vinculada a la realización de formación reglada en España.",
+    "items": [
+      "Pasaporte en vigor",
+      "Certificado de empadronamiento",
+      "Certificado de antecedentes penales",
+      "Matrícula o compromiso de formación"
+    ]
+  },
+  "residencia-y-trabajo": {
+    "tipoCita": "extranjeria",
+    "title": "Residencia y trabajo",
+    "intro": "Autorización inicial de residencia temporal y trabajo por cuenta ajena.",
+    "items": [
+      "Pasaporte completo",
+      "Contrato de trabajo firmado",
+      "Documentación de la empresa empleadora",
+      "Certificado de antecedentes penales"
+    ]
+  },
+  "reagrupacion-familiar": {
+    "tipoCita": "extranjeria",
+    "title": "Reagrupación familiar",
+    "intro": "Procedimiento para reagrupar a determinados familiares conforme a la normativa de extranjería.",
+    "items": [
+      "Pasaporte del reagrupante y familiar",
+      "Tarjeta de residencia del reagrupante",
+      "Acreditación de medios económicos",
+      "Informe de vivienda adecuada"
+    ]
+  },
+  "nacionalidad": {
+    "tipoCita": "extranjeria",
+    "title": "Nacionalidad española",
+    "intro": "Procedimiento para la adquisición de la nacionalidad española por residencia u otros supuestos legales.",
+    "items": [
+      "Pasaporte en vigor",
+      "Tarjeta de residencia",
+      "Certificado de empadronamiento",
+      "Pruebas CCSE / DELE (si aplica)"
+    ]
+  },
+  "nomada-digital": {
+    "tipoCita": "nomada",
+    "title": "Nómada digital",
+    "intro": "Autorización de residencia para profesionales que trabajan en remoto desde España.",
+    "items": [
+      "Pasaporte en vigor",
+      "Contrato o relación profesional",
+      "Acreditación de ingresos",
+      "Seguro médico"
+    ]
+  },
+  "pac": {
+    "tipoCita": "pac",
+    "title": "Profesional altamente cualificado",
+    "intro": "Autorización de residencia para profesionales altamente cualificados conforme a la normativa especial.",
+    "items": [
+      "Pasaporte en vigor",
+      "Contrato de trabajo cualificado",
+      "Documentación de la empresa",
+      "Acreditación del perfil profesional"
+    ]
+  }
+}

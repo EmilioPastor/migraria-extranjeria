@@ -3,75 +3,101 @@ import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="bg-[var(--primary)] text-white">
-      <div className="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-3 gap-20">
+    <footer className="bg-[#0f1f2e] text-white">
+      {/* BLOQUE SUPERIOR */}
+      <div className="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-4 gap-16">
         
-        {/* BLOQUE MARCA */}
+        {/* MARCA */}
         <div>
           <Image
             src="/logo/migraria-logo.png"
             alt="Migraria Extranjería"
             width={180}
-            height={55}
-            className="mb-8"
+            height={60}
+            className="mb-6"
           />
 
-          <p className="text-white/80 leading-relaxed max-w-sm">
-            Despacho especializado en derecho de extranjería, inmigración y
-            nacionalidad española. Asesoramiento jurídico riguroso y
-            personalizado.
+          <p className="text-sm text-white/70 leading-relaxed">
+            Despacho especializado en derecho de extranjería e inmigración.
+            Asesoramiento jurídico claro, riguroso y adaptado a cada caso
+            concreto.
           </p>
         </div>
 
-        {/* BLOQUE NAVEGACIÓN */}
+        {/* SERVICIOS */}
         <div>
-          <h4 className="text-sm uppercase tracking-wide mb-6 text-white/60">
-            Navegación
-          </h4>
+          <p className="text-sm font-semibold uppercase tracking-wider mb-6">
+            Servicios
+          </p>
 
-          <ul className="space-y-4">
+          <ul className="space-y-3 text-sm text-white/80">
             <li>
-              <Link href="/" className="hover:underline">
-                Inicio
+              <Link href="/servicios/regimen-general">
+                Régimen general
               </Link>
             </li>
             <li>
-              <Link href="/servicios" className="hover:underline">
-                Servicios
+              <Link href="/servicios/regimen-especial">
+                Régimen especial
               </Link>
             </li>
             <li>
-              <Link href="/sobre-nosotros" className="hover:underline">
-                Sobre nosotros
+              <Link href="/servicios/regimen-general/nacionalidad">
+                Nacionalidad española
               </Link>
             </li>
             <li>
-              <Link href="/contacto" className="hover:underline">
-                Contacto
+              <Link href="/servicios/regimen-especial/nomada-digital">
+                Nómada digital
               </Link>
             </li>
           </ul>
         </div>
 
-        {/* BLOQUE LEGAL */}
+        {/* DESPACHO */}
         <div>
-          <h4 className="text-sm uppercase tracking-wide mb-6 text-white/60">
-            Información legal
-          </h4>
+          <p className="text-sm font-semibold uppercase tracking-wider mb-6">
+            Despacho
+          </p>
 
-          <ul className="space-y-4">
+          <ul className="space-y-3 text-sm text-white/80">
             <li>
-              <Link href="/aviso-legal" className="hover:underline">
+              <Link href="/sobre-nosotros">
+                Sobre nosotros
+              </Link>
+            </li>
+            <li>
+              <Link href="/contacto">
+                Contacto
+              </Link>
+            </li>
+            <li>
+              <Link href="/pedir-cita">
+                Pedir cita online
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* LEGAL */}
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wider mb-6">
+            Legal
+          </p>
+
+          <ul className="space-y-3 text-sm text-white/80">
+            <li>
+              <Link href="/aviso-legal">
                 Aviso legal
               </Link>
             </li>
             <li>
-              <Link href="/politica-privacidad" className="hover:underline">
+              <Link href="/politica-privacidad">
                 Política de privacidad
               </Link>
             </li>
             <li>
-              <Link href="/politica-cookies" className="hover:underline">
+              <Link href="/politica-cookies">
                 Política de cookies
               </Link>
             </li>
@@ -79,11 +105,19 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* PIE FINAL */}
-      <div className="border-t border-white/20">
-        <div className="max-w-7xl mx-auto px-6 py-6 text-sm text-white/60 flex justify-between">
-          <span>© {new Date().getFullYear()} Migraria Extranjería</span>
-          <span>Todos los derechos reservados</span>
+      {/* BLOQUE INFERIOR */}
+      <div className="border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row gap-6 justify-between items-center text-sm text-white/60">
+          
+          <p>
+            © {new Date().getFullYear()} MIGRARIA EXTRANJERÍA. Todos los derechos
+            reservados.
+          </p>
+
+          <p className="text-center md:text-right max-w-xl">
+            La información contenida en este sitio web tiene carácter meramente
+            informativo y no constituye asesoramiento jurídico.
+          </p>
         </div>
       </div>
     </footer>

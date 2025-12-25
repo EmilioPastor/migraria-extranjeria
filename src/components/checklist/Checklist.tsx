@@ -1,135 +1,110 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import Card from "@/components/ui/Card";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import ProcessSteps from "@/components/ui/ProcessSteps";
 import Button from "@/components/ui/Button";
 
-type ChecklistData = {
+interface ChecklistProps {
   title: string;
   intro: string;
-  requisitos: string[];
-  documentos: string[];
-  plazo: string;
-  errores: string[];
-};
+  items: string[];
+  tipoCita: string;
+}
 
-type ChecklistProps = {
-  data: ChecklistData;
-  tipoCita: string; // 👈 CLAVE
-};
+export default function Checklist({
+  title,
+  intro,
+  items,
+  tipoCita,
+}: ChecklistProps) {
+  const router = useRouter();
 
-export default function Checklist({ data, tipoCita }: ChecklistProps) {
-  const storageKey = `checklist-${data.title
+  const storageKey = `checklist-${title
     .toLowerCase()
     .replace(/\s+/g, "-")}`;
 
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [checked, setChecked] = useState<string[]>([]);
 
-  /* CARGAR */
+  /* CARGAR PROGRESO */
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
     if (saved) setChecked(JSON.parse(saved));
   }, [storageKey]);
 
-  /* GUARDAR */
+  /* GUARDAR PROGRESO */
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(checked));
   }, [checked, storageKey]);
 
   const toggle = (item: string) => {
-    setChecked((prev) => ({ ...prev, [item]: !prev[item] }));
+    setChecked((prev) =>
+      prev.includes(item)
+        ? prev.filter((i) => i !== item)
+        : [...prev, item]
+    );
   };
 
-  /* PROGRESO */
-  const totalDocs = data.documentos.length;
-  const checkedCount = useMemo(
-    () => data.documentos.filter((doc) => checked[doc]).length,
-    [checked, data.documentos]
-  );
+  const handleContinue = () => {
+    const params = new URLSearchParams();
+    params.set("tipo", tipoCita);
+    params.set("checklist", checked.join(", "));
 
-  const progress = Math.round((checkedCount / totalDocs) * 100);
+    // 👉 AQUÍ ESTÁ LA CLAVE
+    router.push(`/pedir-cita?${params.toString()}`);
+  };
 
-  /* RESUMEN */
-  const selectedDocs = data.documentos.filter((doc) => checked[doc]);
-
-  const checklistSummary = encodeURIComponent(
-    `Trámite: ${data.title}
-
-Documentos preparados (${selectedDocs.length}/${data.documentos.length}):
-${selectedDocs.map((d) => `- ${d}`).join("\n")}`
-  );
+  const progress = Math.round((checked.length / items.length) * 100);
 
   return (
-    <section className="bg-white section">
-      <div className="max-w-5xl mx-auto px-6">
-        <h2 className="text-3xl font-semibold text-[var(--primary)] mb-4">
-          {data.title}
-        </h2>
+    <>
+      {/* PASO 2 */}
+      <ProcessSteps currentStep={2} />
 
-        <p className="mb-12 text-[var(--text-muted)]">{data.intro}</p>
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-6 pb-28">
+          <h2 className="text-3xl font-semibold text-[var(--primary)] mb-6">
+            {title}
+          </h2>
 
-        {/* PROGRESO */}
-        <div className="mb-16">
-          <p className="mb-2 text-sm text-[var(--text-muted)]">
-            Progreso de preparación: {checkedCount} de {totalDocs} documentos
-          </p>
+          <p className="text-readable mb-10 max-w-2xl">{intro}</p>
 
-          <div className="w-full h-3 bg-gray-200 rounded-sm overflow-hidden">
-            <div
-              className="h-full bg-[var(--primary)] transition-all"
-              style={{ width: `${progress}%` }}
-            />
+          {/* PROGRESO */}
+          <div className="mb-14">
+            <p className="text-sm text-gray-500 mb-2">
+              Progreso: {checked.length} de {items.length} documentos
+            </p>
+
+            <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
+              <div
+                className="h-full bg-[var(--primary)] transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
-        </div>
 
-        <Card title="Requisitos principales">
-          <ul className="space-y-3">
-            {data.requisitos.map((r) => (
-              <li key={r}>• {r}</li>
+          <ul className="space-y-6 mb-20">
+            {items.map((item) => (
+              <li
+                key={item}
+                className="flex items-center gap-4 border-b border-gray-200 pb-4"
+              >
+                <input
+                  type="checkbox"
+                  checked={checked.includes(item)}
+                  onChange={() => toggle(item)}
+                  className="w-5 h-5 accent-[var(--primary)]"
+                />
+                <span className="text-readable">{item}</span>
+              </li>
             ))}
           </ul>
-        </Card>
 
-        <div className="mt-12">
-          <Card title="Documentación necesaria">
-            <ul className="space-y-4">
-              {data.documentos.map((doc) => (
-                <li key={doc} className="flex items-center gap-4">
-                  <input
-                    type="checkbox"
-                    checked={checked[doc] || false}
-                    onChange={() => toggle(doc)}
-                  />
-                  <span>{doc}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </div>
-
-        <div className="mt-12">
-          <Card title="Plazo orientativo">{data.plazo}</Card>
-        </div>
-
-        <div className="mt-12">
-          <Card title="Errores frecuentes">
-            <ul className="space-y-3">
-              {data.errores.map((e) => (
-                <li key={e}>⚠️ {e}</li>
-              ))}
-            </ul>
-          </Card>
-        </div>
-
-        {/* CTA CORRECTA */}
-        <div className="mt-20 text-center">
-          <Button
-            href={`/pedir-cita?tipo=${tipoCita}&checklist=${checklistSummary}`}
-          >
-            Pedir cita y enviar mi checklist
+          <Button onClick={handleContinue}>
+            Continuar y pedir cita
           </Button>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

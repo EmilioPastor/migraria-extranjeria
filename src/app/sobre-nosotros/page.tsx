@@ -1,75 +1,156 @@
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 
 export default function SobreNosotrosPage() {
   return (
-    <section className="bg-[var(--bg-soft)]">
-      <div className="max-w-7xl mx-auto px-6 py-32">
-        {/* TÍTULO */}
-        <h1 className="text-4xl font-semibold text-[var(--primary)]">
-          Sobre Migraria Extranjería
-        </h1>
+    <>
+      {/* =========================
+          HERO
+         ========================= */}
+      <section className="bg-[var(--primary)] text-white">
+        <div className="max-w-7xl mx-auto px-6 py-32">
+          <p className="uppercase tracking-widest text-white/60 mb-6 text-sm">
+            Sobre nosotros
+          </p>
 
-        {/* INTRO */}
-        <p className="mt-8 text-lg text-[var(--text-muted)] max-w-4xl">
-          Migraria Extranjería es un despacho especializado en derecho de
-          extranjería e inmigración, orientado a ofrecer asesoramiento legal
-          riguroso, claro y adaptado a cada situación personal o profesional.
-        </p>
+          <h1 className="text-5xl font-semibold leading-tight mb-10 max-w-3xl">
+            Especialización, criterio jurídico  
+            <br />
+            <span className="text-white/80">
+              y acompañamiento profesional
+            </span>
+          </h1>
 
-        <p className="mt-6 text-[var(--text-muted)] max-w-4xl">
-          Nuestra dedicación exclusiva a esta área del derecho nos permite
-          trabajar con un conocimiento actualizado de la normativa y de los
-          criterios administrativos aplicables en cada procedimiento.
-        </p>
-
-        {/* CÓMO TRABAJAMOS */}
-        <div className="mt-28">
-          <h2 className="text-3xl font-semibold text-[var(--primary)] mb-16">
-            Cómo trabajamos
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-16">
-            <Card title="Estudio previo del caso">
-              Analizamos cada situación de forma individual antes de iniciar
-              cualquier trámite, valorando la viabilidad real y las posibles
-              alternativas legales.
-            </Card>
-
-            <Card title="Información clara y honesta">
-              Explicamos el procedimiento, los requisitos y los plazos de forma
-              comprensible, sin generar expectativas que no se ajusten a la
-              realidad jurídica.
-            </Card>
-
-            <Card title="Acompañamiento continuo">
-              Acompañamos al cliente durante todas las fases del procedimiento,
-              desde la preparación de la solicitud hasta su resolución.
-            </Card>
-          </div>
-        </div>
-
-        {/* COMPROMISO */}
-        <div className="mt-32 max-w-4xl">
-          <h2 className="text-3xl font-semibold text-[var(--primary)]">
-            Compromiso profesional
-          </h2>
-
-          <p className="mt-8 text-[var(--text-muted)]">
-            En Migraria Extranjería trabajamos con un firme compromiso de rigor
-            jurídico, confidencialidad y responsabilidad profesional. Nuestro
-            objetivo es ofrecer soluciones legales sólidas, siempre dentro del
-            marco normativo vigente y con total transparencia.
+          <p className="text-lg text-white/80 max-w-2xl">
+            MIGRARIA EXTRANJERÍA es un despacho especializado en derecho de
+            extranjería e inmigración, orientado a ofrecer asesoramiento jurídico
+            claro, honesto y ajustado a la normativa vigente.
           </p>
         </div>
+      </section>
 
-        {/* CTA */}
-        <div className="mt-24">
-          <Button href="/pedir-cita" variant="secondary">
-            Solicitar cita
-          </Button>
+      {/* =========================
+          QUIÉNES SOMOS
+         ========================= */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-6 py-28 grid md:grid-cols-2 gap-24">
+          <div>
+            <h2 className="text-3xl font-semibold text-[var(--primary)] mb-8">
+              Quiénes somos
+            </h2>
+
+            <p className="text-readable mb-6">
+              Somos un despacho centrado exclusivamente en el ámbito de la
+              extranjería, la inmigración y la nacionalidad, lo que nos permite
+              conocer en profundidad tanto la legislación aplicable como la
+              práctica administrativa real.
+            </p>
+
+            <p className="text-readable">
+              Nuestro trabajo se basa en el estudio individualizado de cada
+              caso, evitando soluciones genéricas y ofreciendo siempre una
+              valoración honesta sobre la viabilidad de cada procedimiento.
+            </p>
+          </div>
+
+          <div className="border-l-2 border-[var(--primary)] pl-12">
+            <p className="uppercase text-xs tracking-widest text-[var(--primary)] mb-4">
+              Principios
+            </p>
+
+            <ul className="space-y-6 text-lg">
+              <li>Rigor jurídico y actualización constante</li>
+              <li>Transparencia en plazos y expectativas</li>
+              <li>Comunicación clara y accesible</li>
+              <li>Acompañamiento durante todo el procedimiento</li>
+            </ul>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* =========================
+          MÉTODO DE TRABAJO
+         ========================= */}
+      <section className="bg-[var(--bg-soft)]">
+        <div className="max-w-7xl mx-auto px-6 py-28">
+          <h2 className="text-3xl font-semibold text-[var(--primary)] mb-20">
+            Nuestra forma de trabajar
+          </h2>
+
+          <div className="grid md:grid-cols-4 gap-16">
+            <div>
+              <p className="text-sm text-[var(--text-muted)] mb-4">01</p>
+              <h3 className="text-xl font-semibold mb-4">
+                Análisis del caso
+              </h3>
+              <p className="text-readable">
+                Estudiamos tu situación personal y administrativa de forma
+                individual, conforme a la normativa vigente.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-[var(--text-muted)] mb-4">02</p>
+              <h3 className="text-xl font-semibold mb-4">
+                Estrategia legal
+              </h3>
+              <p className="text-readable">
+                Definimos el procedimiento más adecuado y los pasos necesarios
+                para su correcta tramitación.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-[var(--text-muted)] mb-4">03</p>
+              <h3 className="text-xl font-semibold mb-4">
+                Preparación del expediente
+              </h3>
+              <p className="text-readable">
+                Te guiamos en la recopilación y revisión de la documentación
+                exigida para evitar errores.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-[var(--text-muted)] mb-4">04</p>
+              <h3 className="text-xl font-semibold mb-4">
+                Seguimiento
+              </h3>
+              <p className="text-readable">
+                Realizamos un seguimiento del procedimiento hasta su resolución
+                y te mantenemos informado en todo momento.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================
+          CIERRE
+         ========================= */}
+      <section className="bg-white">
+        <div className="max-w-5xl mx-auto px-6 py-28 text-center">
+          <h2 className="text-3xl font-semibold text-[var(--primary)] mb-8">
+            Un enfoque jurídico serio y responsable
+          </h2>
+
+          <p className="text-lg text-readable max-w-3xl mx-auto">
+            Cada situación migratoria es distinta. Por ello, ofrecemos un
+            asesoramiento personalizado, basado en el análisis jurídico y en la
+            experiencia práctica en materia de extranjería.
+          </p>
+
+          <div className="mt-14">
+            <Button href="/pedir-cita">
+              Solicitar cita
+            </Button>
+          </div>
+
+          <p className="mt-10 text-sm text-[var(--text-muted)]">
+            La solicitud de cita no implica la aceptación del caso ni la
+            prestación de asesoramiento jurídico previo.
+          </p>
+        </div>
+      </section>
+    </>
   );
 }
