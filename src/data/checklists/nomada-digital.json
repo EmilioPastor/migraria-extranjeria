@@ -1,0 +1,22 @@
+{
+  "title": "Nómada digital",
+  "intro": "Checklist orientativo para una autorización de residencia como nómada digital.",
+  "requisitos": [
+    "Actividad profesional en remoto",
+    "Ingresos mínimos acreditados",
+    "Relación laboral o profesional con empresa extranjera"
+  ],
+  "documentos": [
+    "Pasaporte completo",
+    "Contrato de trabajo o relación mercantil",
+    "Certificado de empresa extranjera",
+    "Acreditación de ingresos",
+    "Seguro médico"
+  ],
+  "plazo": "Entre 1 y 3 meses (orientativo)",
+  "errores": [
+    "Ingresos insuficientes",
+    "Actividad no considerada remota",
+    "Empresa sin actividad real acreditada"
+  ]
+}

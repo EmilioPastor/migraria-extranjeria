@@ -1,0 +1,24 @@
+{
+  "title": "Nacionalidad española",
+  "intro": "Checklist orientativo para preparar una solicitud de nacionalidad española por residencia.",
+  "requisitos": [
+    "Residencia legal y continuada en España durante el plazo exigido",
+    "Buena conducta cívica",
+    "Integración en la sociedad española"
+  ],
+  "documentos": [
+    "Pasaporte completo",
+    "Tarjeta de residencia (NIE)",
+    "Certificado de empadronamiento histórico",
+    "Certificado de antecedentes penales del país de origen",
+    "Certificado de antecedentes penales en España",
+    "Certificados CCSE y DELE (si procede)"
+  ],
+  "plazo": "Entre 1 y 3 años (orientativo)",
+  "errores": [
+    "Tiempo de residencia insuficiente",
+    "Antecedentes penales no cancelados",
+    "Documentación incompleta o caducada",
+    "No superar las pruebas obligatorias"
+  ]
+}

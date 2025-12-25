@@ -1,0 +1,21 @@
+{
+  "title": "Arraigo social",
+  "intro": "Checklist orientativo para preparar un procedimiento de arraigo social.",
+  "requisitos": [
+    "Permanencia continuada en España",
+    "Carecer de antecedentes penales",
+    "Vínculos familiares o informe de inserción social"
+  ],
+  "documentos": [
+    "Pasaporte completo",
+    "Empadronamiento histórico",
+    "Informe de inserción social",
+    "Contrato de trabajo o medios económicos"
+  ],
+  "plazo": "Entre 2 y 5 meses (orientativo)",
+  "errores": [
+    "Empadronamiento insuficiente",
+    "Contrato no válido",
+    "Antecedentes no cancelados"
+  ]
+}

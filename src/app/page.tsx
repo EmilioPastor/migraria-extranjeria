@@ -1,101 +1,166 @@
 import Image from "next/image";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+    <>
+      {/* =========================
+          HERO INSTITUCIONAL
+         ========================= */}
+      <section className="bg-[var(--primary)] text-white">
+        <div className="max-w-7xl mx-auto px-6 py-36 grid md:grid-cols-2 gap-24 items-center">
+          <div>
             <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src="/logo/migraria-logo.png"
+              alt="Migraria Extranjería"
+              width={240}
+              height={80}
+              priority
+              className="mb-12"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+
+            <h1 className="text-5xl font-semibold leading-tight">
+              Especialistas en extranjería, inmigración y nacionalidad española
+            </h1>
+
+            <p className="mt-8 text-lg text-white/80 max-w-xl">
+              Asesoramiento jurídico riguroso para personas, profesionales y
+              empresas que necesitan seguridad legal en sus procedimientos de
+              extranjería en España.
+            </p>
+
+            <div className="mt-14 flex gap-6">
+              <Button href="/pedir-cita" variant="secondary">
+                Pedir cita online
+              </Button>
+
+              <Button href="/servicios" variant="secondary">
+                Ver servicios
+              </Button>
+            </div>
+          </div>
+
+          {/* BLOQUE VISUAL CON MARCO */}
+          <div className="border border-white/20 p-10">
+            <p className="text-sm uppercase tracking-wide text-white/60 mb-4">
+              Despacho especializado
+            </p>
+            <p className="text-xl leading-relaxed">
+              Actuamos exclusivamente en el ámbito del derecho de extranjería,
+              lo que nos permite ofrecer un conocimiento actualizado y una
+              estrategia jurídica sólida en cada caso.
+            </p>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </section>
+
+      {/* =========================
+          BLOQUE IDENTIDAD
+         ========================= */}
+      <section className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-6 py-28 grid md:grid-cols-3 gap-20">
+          <div>
+            <p className="text-sm uppercase tracking-wide text-[var(--text-muted)] mb-4">
+              Especialización
+            </p>
+            <h2 className="text-2xl font-semibold text-[var(--primary)]">
+              Dedicación exclusiva a extranjería
+            </h2>
+          </div>
+
+          <div className="md:col-span-2 text-[var(--text-muted)] text-lg">
+            No somos un despacho generalista. Nuestra práctica está centrada
+            exclusivamente en extranjería e inmigración, lo que nos permite
+            conocer en profundidad los criterios administrativos y aplicar la
+            normativa con rigor y precisión.
+          </div>
+        </div>
+      </section>
+
+      {/* =========================
+          SERVICIOS DESTACADOS
+         ========================= */}
+      <section className="bg-[var(--bg-soft)]">
+        <div className="max-w-7xl mx-auto px-6 py-32">
+          <div className="flex items-end justify-between mb-20">
+            <h2 className="text-3xl font-semibold text-[var(--primary)]">
+              Servicios principales
+            </h2>
+            <p className="text-[var(--text-muted)] max-w-md">
+              Procedimientos habituales en los que prestamos asesoramiento
+              jurídico especializado.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-10">
+            <Card title="Arraigos y regularización">
+              Procedimientos de arraigo y otras vías de regularización conforme a
+              la normativa vigente.
+            </Card>
+
+            <Card title="Nacionalidad española">
+              Asesoramiento y tramitación del procedimiento de adquisición de la
+              nacionalidad española.
+            </Card>
+
+            <Card title="Nómadas digitales">
+              Residencia para profesionales que desarrollan su actividad en
+              remoto desde España.
+            </Card>
+
+            <Card title="Profesionales cualificados">
+              Autorizaciones para perfiles altamente cualificados y empresas.
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================
+          BLOQUE MÉTODO
+         ========================= */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-6 py-32 grid md:grid-cols-3 gap-16">
+          <Card title="Análisis jurídico previo">
+            Cada caso se estudia de forma individual antes de iniciar cualquier
+            actuación, valorando su viabilidad real.
+          </Card>
+
+          <Card title="Información clara y honesta">
+            Explicamos el procedimiento, los plazos y los riesgos de forma
+            comprensible, sin generar falsas expectativas.
+          </Card>
+
+          <Card title="Seguimiento continuo">
+            Acompañamos al cliente durante todo el procedimiento administrativo,
+            manteniendo una comunicación constante.
+          </Card>
+        </div>
+      </section>
+
+      {/* =========================
+          CTA FINAL CONTUNDENTE
+         ========================= */}
+      <section className="bg-[var(--primary)] text-white">
+        <div className="max-w-7xl mx-auto px-6 py-32 grid md:grid-cols-2 gap-20 items-center">
+          <div>
+            <h2 className="text-3xl font-semibold">
+              ¿Necesitas asesoramiento legal en extranjería?
+            </h2>
+
+            <p className="mt-6 text-white/80 max-w-xl">
+              Solicita una cita online y analizaremos tu situación con criterio
+              jurídico y total confidencialidad.
+            </p>
+          </div>
+
+          <div className="flex md:justify-end">
+            <Button href="/pedir-cita" variant="secondary">
+              Pedir cita online
+            </Button>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

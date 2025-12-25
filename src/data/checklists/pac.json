@@ -1,0 +1,22 @@
+{
+  "title": "Profesional altamente cualificado",
+  "intro": "Checklist orientativo para una autorización de residencia como profesional altamente cualificado.",
+  "requisitos": [
+    "Oferta de empleo cualificada en España",
+    "Titulación superior o experiencia acreditada",
+    "Salario conforme a los mínimos exigidos"
+  ],
+  "documentos": [
+    "Pasaporte completo",
+    "Contrato de trabajo",
+    "Titulación académica o acreditación profesional",
+    "Currículum vitae",
+    "Documentación de la empresa"
+  ],
+  "plazo": "Entre 20 y 30 días (orientativo)",
+  "errores": [
+    "Puesto no considerado cualificado",
+    "Salario insuficiente",
+    "Empresa no elegible"
+  ]
+}

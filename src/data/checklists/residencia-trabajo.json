@@ -1,0 +1,22 @@
+{
+  "title": "Residencia y trabajo",
+  "intro": "Checklist orientativo para una autorización inicial de residencia y trabajo.",
+  "requisitos": [
+    "No encontrarse irregularmente en España",
+    "Carecer de antecedentes penales",
+    "Oferta de empleo válida o proyecto de actividad por cuenta propia"
+  ],
+  "documentos": [
+    "Pasaporte completo",
+    "Contrato de trabajo firmado",
+    "Documentación de la empresa empleadora",
+    "Certificado de antecedentes penales",
+    "Acreditación de cualificación profesional"
+  ],
+  "plazo": "Entre 1 y 3 meses (orientativo)",
+  "errores": [
+    "Contrato no conforme a la normativa",
+    "Empresa sin capacidad económica acreditada",
+    "Documentación incompleta"
+  ]
+}

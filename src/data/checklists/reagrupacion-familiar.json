@@ -1,0 +1,23 @@
+{
+  "title": "Reagrupación familiar",
+  "intro": "Checklist orientativo para preparar un procedimiento de reagrupación familiar.",
+  "requisitos": [
+    "Residencia legal y renovada en España",
+    "Medios económicos suficientes",
+    "Vivienda adecuada"
+  ],
+  "documentos": [
+    "Pasaporte del reagrupante",
+    "Tarjeta de residencia",
+    "Certificado de empadronamiento",
+    "Contrato de trabajo o medios económicos",
+    "Informe de vivienda adecuada",
+    "Documentación acreditativa del vínculo familiar"
+  ],
+  "plazo": "Entre 2 y 6 meses (orientativo)",
+  "errores": [
+    "Ingresos insuficientes",
+    "Vivienda no adecuada",
+    "Documentación del vínculo incorrecta o incompleta"
+  ]
+}
