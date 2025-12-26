@@ -8,19 +8,15 @@ export function middleware(req) {
     !req.nextUrl.pathname.startsWith("/admin/login")
   ) {
     if (!role) {
-      return NextResponse.redirect(
-        new URL("/admin/login", req.url)
-      );
+      return NextResponse.redirect(new URL("/admin/login", req.url));
     }
 
-    // 🔒 Solo admin puede evaluar casos
     if (
-      req.nextUrl.pathname.startsWith("/admin/case") &&
+      (req.nextUrl.pathname.startsWith("/admin/users") ||
+        req.nextUrl.pathname.startsWith("/admin/audit")) &&
       role !== "admin"
     ) {
-      return NextResponse.redirect(
-        new URL("/admin", req.url)
-      );
+      return NextResponse.redirect(new URL("/admin", req.url));
     }
   }
 

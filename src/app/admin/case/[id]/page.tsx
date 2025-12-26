@@ -1,71 +1,95 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabaseBrowser";
+import { useParams, useRouter } from "next/navigation";
 
 type Document = {
   id: string;
   document_type: string;
 };
 
+type CaseData = {
+  id: string;
+  tramite: string;
+  status: "in_review" | "favorable" | "not_favorable";
+};
+
 export default function AdminCasePage() {
+  const { id } = useParams();
   const router = useRouter();
-  const [message, setMessage] = useState("");
+
+  const [caseData, setCaseData] = useState<CaseData | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // 🔹 MOCK: documentos del caso (luego vendrán de API real)
+  /* 🔹 CARGAR CASO + DOCUMENTOS */
   useEffect(() => {
-    setDocuments([
-      { id: "doc-1", document_type: "Pasaporte" },
-      { id: "doc-2", document_type: "Empadronamiento" },
-    ]);
-  }, []);
+    const load = async () => {
+      const caseRes = await fetch(`/api/admin/case/get?id=${id}`);
+      const caseJson = await caseRes.json();
+      setCaseData(caseJson);
 
-  const logout = async () => {
-    await supabaseBrowser.auth.signOut();
-    router.push("/admin/login");
-  };
+      const docsRes = await fetch(
+        `/api/admin/documents?caseId=${id}`
+      );
+      const docsJson = await docsRes.json();
+      setDocuments(docsJson);
 
-  const saveCase = (status: "favorable" | "not_favorable") => {
-    // ⚠️ Aún mock — se conectará a backend
-    const data = {
-      tramite: "Arraigo social",
-      status,
-      message:
-        message ||
-        (status === "favorable"
-          ? "El caso cumple los requisitos."
-          : "El caso no cumple los requisitos actualmente."),
+      setLoading(false);
     };
 
-    localStorage.setItem("migraria-demo-case", JSON.stringify(data));
-    alert(`Caso marcado como ${status.toUpperCase()}`);
+    load();
+  }, [id]);
+
+  const saveCase = async (
+    status: "favorable" | "not_favorable"
+  ) => {
+    await fetch("/api/admin/case/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        caseId: id,
+        status,
+        message:
+          message ||
+          (status === "favorable"
+            ? "El caso cumple los requisitos según la documentación aportada."
+            : "Con la documentación actual, el trámite presenta dificultades."),
+      }),
+    });
+
+    alert("Caso actualizado correctamente");
+    router.push("/admin/cases");
   };
 
+  if (loading || !caseData) return null;
+
   return (
-    <section className="max-w-4xl mx-auto py-20 px-6 space-y-10">
+    <section className="max-w-5xl mx-auto py-20 px-6 space-y-10">
       {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            Evaluar caso – Arraigo social
-          </h1>
-          <p className="text-gray-600">
-            Documentación aportada por el cliente
-          </p>
-        </div>
+      <header>
+        <h1 className="text-2xl font-semibold">
+          Evaluar caso – {caseData.tramite}
+        </h1>
+        <p className="text-gray-600">
+          Estado actual: {caseData.status}
+        </p>
+      </header>
 
-        <button
-          onClick={logout}
-          className="text-sm text-red-600 hover:underline"
-        >
-          Cerrar sesión
-        </button>
-      </div>
-
-      {/* 📂 DOCUMENTOS */}
+      {/* DOCUMENTOS */}
       <div className="space-y-4">
+        <h2 className="text-lg font-medium">
+          Documentación aportada
+        </h2>
+
+        {documents.length === 0 && (
+          <p className="text-sm text-gray-500">
+            El cliente aún no ha subido documentos.
+          </p>
+        )}
+
         {documents.map((doc) => (
           <div
             key={doc.id}
@@ -83,28 +107,34 @@ export default function AdminCasePage() {
         ))}
       </div>
 
-      {/* 📝 MENSAJE */}
-      <textarea
-        className="w-full border p-4"
-        placeholder="Mensaje para el cliente"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-      />
+      {/* MENSAJE */}
+      <div>
+        <h2 className="text-lg font-medium mb-2">
+          Mensaje para el cliente
+        </h2>
 
-      {/* ⚖️ ACCIONES */}
+        <textarea
+          className="w-full border p-4 min-h-[120px]"
+          placeholder="Mensaje orientativo que verá el cliente en su portal"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+      </div>
+
+      {/* ACCIONES */}
       <div className="flex gap-4">
         <button
           onClick={() => saveCase("favorable")}
           className="px-6 py-3 bg-green-600 text-white rounded"
         >
-          Favorable
+          Marcar como favorable
         </button>
 
         <button
           onClick={() => saveCase("not_favorable")}
           className="px-6 py-3 bg-red-600 text-white rounded"
         >
-          No favorable
+          Marcar como no favorable
         </button>
       </div>
     </section>
