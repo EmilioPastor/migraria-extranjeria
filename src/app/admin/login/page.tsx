@@ -24,12 +24,6 @@ export default function AdminLoginPage() {
       setLoading(false);
       return;
     }
-    if (res.status === 429) {
-      setError("Demasiados intentos. Espera unos minutos.");
-      setLoading(false);
-      return;
-    }
-
 
     window.location.href = "/admin";
   };

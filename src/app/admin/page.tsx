@@ -1,46 +1,38 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabaseBrowser";
+import { useEffect, useState } from "react";
 
 export default function AdminHomePage() {
-  const router = useRouter();
+  const [role, setRole] = useState<string | null>(null);
 
-  const logout = async () => {
-    await supabaseBrowser.auth.signOut();
-    router.push("/admin/login");
-  };
+  useEffect(() => {
+    const match = document.cookie.match(/admin-session=([^;]+)/);
+    if (match) setRole(match[1]);
+  }, []);
 
   return (
-    <section className="max-w-4xl mx-auto py-20 px-6 space-y-10">
-      {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold">
-          Panel interno – Migraria
-        </h1>
+    <section className="max-w-4xl mx-auto py-20 px-6">
+      <h1 className="text-3xl font-semibold mb-6">
+        Panel interno – Migraria
+      </h1>
 
-        <button
-          onClick={logout}
-          className="text-sm text-red-600 hover:underline"
-        >
-          Cerrar sesión
-        </button>
-      </div>
+      {role === "admin" && (
+        <p className="text-green-700 mb-4">
+          Rol: Administrador
+        </p>
+      )}
 
-      <p className="text-gray-600">
-        Acceso interno para gestión de evaluaciones.
-      </p>
+      {role === "assistant" && (
+        <p className="text-blue-700 mb-4">
+          Rol: Asistente
+        </p>
+      )}
 
-      {/* ACCESOS */}
-      <div className="space-y-4">
-        <Link
-          href="/admin/cases"
-          className="block border p-4 rounded hover:bg-gray-50 transition"
-        >
-          Ver casos en evaluación →
-        </Link>
-      </div>
+      {role === "read" && (
+        <p className="text-gray-600 mb-4">
+          Rol: Solo lectura
+        </p>
+      )}
     </section>
   );
 }

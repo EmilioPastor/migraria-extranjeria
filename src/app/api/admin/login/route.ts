@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
 
@@ -19,17 +21,35 @@ export async function POST(req: Request) {
 
   const { email, password } = await req.json();
 
-  if (
-    email !== process.env.ADMIN_EMAIL ||
-    password !== process.env.ADMIN_PASSWORD
-  ) {
+  const supabase = supabaseAdmin();
+
+  const { data: user, error } = await supabase
+    .from("admin_users")
+    .select("email, password_hash, role, active")
+    .eq("email", email)
+    .eq("active", true)
+    .single();
+
+  if (error || !user) {
     return NextResponse.json(
       { error: "Credenciales incorrectas" },
       { status: 401 }
     );
   }
 
-  cookies().set("admin-session", "true", {
+  const validPassword = bcrypt.compareSync(
+    password,
+    user.password_hash
+  );
+
+  if (!validPassword) {
+    return NextResponse.json(
+      { error: "Credenciales incorrectas" },
+      { status: 401 }
+    );
+  }
+
+  cookies().set("admin-session", user.role, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
@@ -38,11 +58,12 @@ export async function POST(req: Request) {
   });
 
   console.log("[ADMIN LOGIN]", {
-    email,
+    email: user.email,
+    role: user.role,
     ip,
     userAgent: req.headers.get("user-agent"),
     date: new Date().toISOString(),
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, role: user.role });
 }
