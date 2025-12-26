@@ -1,18 +1,12 @@
-"use client";
-
-import { InlineWidget } from "react-calendly";
-import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import ProcessSteps from "@/components/ui/ProcessSteps";
+import PedirCitaClient from "./PedirCitaClient";
 
-const CALENDLY_URL =
-  "https://calendly.com/legal-pastorzurita/consulta-migraria-extranjeria";
+export const metadata = {
+  title: "Pedir cita | Migraria Extranjería",
+};
 
 export default function PedirCitaPage() {
-  const params = useSearchParams();
-
-  const tramite = params.get("tramite") || "";
-  const checklist = params.get("checklist") || "";
-
   return (
     <>
       {/* PASO 3 */}
@@ -29,28 +23,10 @@ export default function PedirCitaPage() {
             trámite concreto, la información se cargará automáticamente.
           </p>
 
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <InlineWidget
-              url={CALENDLY_URL}
-              /*
-               * a1 -> Tipo de trámite
-               * a2 -> Documentación disponible
-               * Si no vienen params (navbar), se cargan vacíos
-               */
-              prefill={{
-                customAnswers: {
-                  a1: tramite,
-                  a2: checklist,
-                },
-              }}
-              pageSettings={{
-                hideEventTypeDetails: false,
-                hideLandingPageDetails: false,
-                primaryColor: "0b3a5a",
-              }}
-              styles={{ height: "820px" }}
-            />
-          </div>
+          {/* 👇 CLAVE: Suspense */}
+          <Suspense fallback={<div className="h-[820px]" />}>
+            <PedirCitaClient />
+          </Suspense>
 
           <p className="mt-6 text-sm text-gray-500">
             La reserva de cita no implica la aceptación del caso ni la prestación
