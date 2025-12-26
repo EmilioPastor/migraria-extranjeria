@@ -16,31 +16,27 @@ export default function Navbar() {
      SCROLL CON HISTÉRESIS
      ========================= */
   useEffect(() => {
-
     const onScroll = () => {
-  const current = window.scrollY;
+      const current = window.scrollY;
 
-  if (!scrolled && current > 80) {
-    setScrolled(true);
-  }
+      if (!scrolled && current > 80) {
+        setScrolled(true);
+      }
 
-  if (scrolled && current < 20) {
-    setScrolled(false);
-  }
-};
-
+      if (scrolled && current < 20) {
+        setScrolled(false);
+      }
+    };
 
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, [scrolled]);
 
   /* =========================
-     DROPDOWN HANDLERS
+     DROPDOWN HANDLERS (DESKTOP)
      ========================= */
   const openServices = () => {
-    if (closeTimeout.current) {
-      clearTimeout(closeTimeout.current);
-    }
+    if (closeTimeout.current) clearTimeout(closeTimeout.current);
     setServicesOpen(true);
   };
 
@@ -74,13 +70,10 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* DESKTOP NAV */}
+          {/* DESKTOP NAV — NO TOCAR */}
           <nav className="hidden md:flex items-center gap-10">
-            <Link href="/" className="nav-link">
-              Inicio
-            </Link>
+            <Link href="/" className="nav-link">Inicio</Link>
 
-            {/* SERVICIOS – WRAPPER CORRECTO */}
             <div
               className="relative"
               onMouseEnter={openServices}
@@ -90,10 +83,8 @@ export default function Navbar() {
                 Servicios
               </Link>
 
-              {/* DROPDOWN */}
               {servicesOpen && (
                 <div className="absolute left-0 top-full mt-4 w-[520px] bg-white border border-gray-200 shadow-xl rounded-lg p-6 grid grid-cols-2 gap-6">
-                  {/* REGIMEN GENERAL */}
                   <div>
                     <p className="menu-title">Régimen general</p>
                     <ul className="menu-list">
@@ -105,7 +96,6 @@ export default function Navbar() {
                     </ul>
                   </div>
 
-                  {/* REGIMEN ESPECIAL */}
                   <div>
                     <p className="menu-title">Régimen especial</p>
                     <ul className="menu-list">
@@ -117,38 +107,83 @@ export default function Navbar() {
               )}
             </div>
 
-            <Link href="/sobre-nosotros" className="nav-link">
-              Sobre nosotros
-            </Link>
-
-            <Link href="/contacto" className="nav-link">
-              Contacto
-            </Link>
+            <Link href="/sobre-nosotros" className="nav-link">Sobre nosotros</Link>
+            <Link href="/contacto" className="nav-link">Contacto</Link>
           </nav>
 
-          {/* CTA */}
           <div className="hidden md:block">
             <Button href="/pedir-cita">Pedir cita</Button>
           </div>
 
-          {/* MOBILE */}
+          {/* BOTÓN MÓVIL */}
           <button
             className="md:hidden text-2xl"
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Abrir menú"
           >
             ☰
           </button>
         </div>
       </div>
 
-      {/* MOBILE MENU */}
+      {/* =========================
+          MENÚ MÓVIL MEJORADO
+         ========================= */}
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 px-6 py-8 space-y-6">
-          <Link href="/" onClick={() => setMenuOpen(false)}>Inicio</Link>
-          <Link href="/servicios" onClick={() => setMenuOpen(false)}>Servicios</Link>
-          <Link href="/sobre-nosotros" onClick={() => setMenuOpen(false)}>Sobre nosotros</Link>
-          <Link href="/contacto" onClick={() => setMenuOpen(false)}>Contacto</Link>
-          <Button href="/pedir-cita">Pedir cita</Button>
+          <Link href="/" onClick={() => setMenuOpen(false)} className="block text-lg">
+            Inicio
+          </Link>
+
+          {/* SERVICIOS MOBILE */}
+          <div className="space-y-3">
+            <button
+              onClick={() => setServicesOpen(!servicesOpen)}
+              className="w-full flex justify-between items-center text-lg font-medium"
+            >
+              Servicios
+              <span>{servicesOpen ? "−" : "+"}</span>
+            </button>
+
+            {servicesOpen && (
+              <div className="pl-4 border-l border-gray-200 space-y-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-500 mb-2">
+                    Régimen general
+                  </p>
+                  <ul className="space-y-2">
+                    <li><Link href="/servicios/regimen-general/arraigo-social" onClick={() => setMenuOpen(false)}>Arraigo social</Link></li>
+                    <li><Link href="/servicios/regimen-general/arraigo-socioformativo" onClick={() => setMenuOpen(false)}>Arraigo socioformativo</Link></li>
+                    <li><Link href="/servicios/regimen-general/nacionalidad" onClick={() => setMenuOpen(false)}>Nacionalidad española</Link></li>
+                    <li><Link href="/servicios/regimen-general/residencia-y-trabajo" onClick={() => setMenuOpen(false)}>Residencia y trabajo</Link></li>
+                    <li><Link href="/servicios/regimen-general/reagrupacion-familiar" onClick={() => setMenuOpen(false)}>Reagrupación familiar</Link></li>
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-gray-500 mb-2">
+                    Régimen especial
+                  </p>
+                  <ul className="space-y-2">
+                    <li><Link href="/servicios/regimen-especial/nomada-digital" onClick={() => setMenuOpen(false)}>Nómada digital</Link></li>
+                    <li><Link href="/servicios/regimen-especial/pac" onClick={() => setMenuOpen(false)}>Profesional altamente cualificado</Link></li>
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Link href="/sobre-nosotros" onClick={() => setMenuOpen(false)} className="block text-lg">
+            Sobre nosotros
+          </Link>
+
+          <Link href="/contacto" onClick={() => setMenuOpen(false)} className="block text-lg">
+            Contacto
+          </Link>
+
+          <Button href="/pedir-cita" onClick={() => setMenuOpen(false)}>
+            Pedir cita
+          </Button>
         </div>
       )}
     </header>
