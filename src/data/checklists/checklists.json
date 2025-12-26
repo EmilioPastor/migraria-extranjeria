@@ -1,6 +1,5 @@
 {
   "arraigo-social": {
-    "tipoCita": "extranjeria",
     "title": "Arraigo social",
     "intro": "Procedimiento de regularización por circunstancias excepcionales para personas que acreditan permanencia continuada en España y vínculos sociales o laborales.",
     "items": [
@@ -12,7 +11,6 @@
     ]
   },
   "arraigo-socioformativo": {
-    "tipoCita": "extranjeria",
     "title": "Arraigo socioformativo",
     "intro": "Autorización de residencia por circunstancias excepcionales vinculada a la realización de formación reglada en España.",
     "items": [
@@ -23,7 +21,6 @@
     ]
   },
   "residencia-y-trabajo": {
-    "tipoCita": "extranjeria",
     "title": "Residencia y trabajo",
     "intro": "Autorización inicial de residencia temporal y trabajo por cuenta ajena.",
     "items": [
@@ -34,7 +31,6 @@
     ]
   },
   "reagrupacion-familiar": {
-    "tipoCita": "extranjeria",
     "title": "Reagrupación familiar",
     "intro": "Procedimiento para reagrupar a determinados familiares conforme a la normativa de extranjería.",
     "items": [
@@ -45,7 +41,6 @@
     ]
   },
   "nacionalidad": {
-    "tipoCita": "extranjeria",
     "title": "Nacionalidad española",
     "intro": "Procedimiento para la adquisición de la nacionalidad española por residencia u otros supuestos legales.",
     "items": [
@@ -56,7 +51,6 @@
     ]
   },
   "nomada-digital": {
-    "tipoCita": "nomada",
     "title": "Nómada digital",
     "intro": "Autorización de residencia para profesionales que trabajan en remoto desde España.",
     "items": [
@@ -67,7 +61,6 @@
     ]
   },
   "pac": {
-    "tipoCita": "pac",
     "title": "Profesional altamente cualificado",
     "intro": "Autorización de residencia para profesionales altamente cualificados conforme a la normativa especial.",
     "items": [

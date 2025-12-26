@@ -22,7 +22,6 @@ export default function ArraigoSocialPage() {
         title={data.title}
         intro={data.intro}
         items={data.items}
-        tipoCita={data.tipoCita}
       />
     </>
   );

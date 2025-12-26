@@ -16,21 +16,19 @@ export default function Navbar() {
      SCROLL CON HISTÉRESIS
      ========================= */
   useEffect(() => {
-    let lastScrollY = window.scrollY;
 
     const onScroll = () => {
-      const current = window.scrollY;
+  const current = window.scrollY;
 
-      if (!scrolled && current > 80) {
-        setScrolled(true);
-      }
+  if (!scrolled && current > 80) {
+    setScrolled(true);
+  }
 
-      if (scrolled && current < 20) {
-        setScrolled(false);
-      }
+  if (scrolled && current < 20) {
+    setScrolled(false);
+  }
+};
 
-      lastScrollY = current;
-    };
 
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);

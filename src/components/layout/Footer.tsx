@@ -87,17 +87,17 @@ export default function Footer() {
 
           <ul className="space-y-3 text-sm text-white/80">
             <li>
-              <Link href="/aviso-legal">
+              <Link href="/legal/aviso-legal">
                 Aviso legal
               </Link>
             </li>
             <li>
-              <Link href="/politica-privacidad">
+              <Link href="/legal/politica-privacidad">
                 Política de privacidad
               </Link>
             </li>
             <li>
-              <Link href="/politica-cookies">
+              <Link href="/legal/politica-cookies">
                 Política de cookies
               </Link>
             </li>

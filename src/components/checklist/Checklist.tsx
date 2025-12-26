@@ -9,30 +9,23 @@ interface ChecklistProps {
   title: string;
   intro: string;
   items: string[];
-  tipoCita: string;
 }
 
 export default function Checklist({
   title,
   intro,
   items,
-  tipoCita,
 }: ChecklistProps) {
   const router = useRouter();
 
-  const storageKey = `checklist-${title
-    .toLowerCase()
-    .replace(/\s+/g, "-")}`;
-
+  const storageKey = `checklist-${title.toLowerCase().replace(/\s+/g, "-")}`;
   const [checked, setChecked] = useState<string[]>([]);
 
-  /* CARGAR PROGRESO */
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
     if (saved) setChecked(JSON.parse(saved));
   }, [storageKey]);
 
-  /* GUARDAR PROGRESO */
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(checked));
   }, [checked, storageKey]);
@@ -47,10 +40,9 @@ export default function Checklist({
 
   const handleContinue = () => {
     const params = new URLSearchParams();
-    params.set("tipo", tipoCita);
+    params.set("tramite", title);
     params.set("checklist", checked.join(", "));
 
-    // 👉 AQUÍ ESTÁ LA CLAVE
     router.push(`/pedir-cita?${params.toString()}`);
   };
 
@@ -69,12 +61,10 @@ export default function Checklist({
 
           <p className="text-readable mb-10 max-w-2xl">{intro}</p>
 
-          {/* PROGRESO */}
           <div className="mb-14">
             <p className="text-sm text-gray-500 mb-2">
               Progreso: {checked.length} de {items.length} documentos
             </p>
-
             <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
               <div
                 className="h-full bg-[var(--primary)] transition-all"
