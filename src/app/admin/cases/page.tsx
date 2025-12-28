@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
+export const dynamic = "force-dynamic";
 
 export default function AdminCasesPage() {
   const router = useRouter();
