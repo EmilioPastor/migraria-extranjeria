@@ -1,10 +1,18 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
 export async function logAdminAction(
   adminEmail: string,
   action: string,
   target?: string,
-  meta?: Record<string, any>
+  meta?: Record<string, JsonValue>
 ) {
   const supabase = supabaseAdmin();
 

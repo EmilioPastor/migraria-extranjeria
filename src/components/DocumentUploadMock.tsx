@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { documentosPorTramite } from "@/data/documentos";
 
 type Props = {
@@ -8,16 +8,15 @@ type Props = {
   onComplete: () => void;
 };
 
-export default function DocumentUploadMock({
-  tramite,
-  onComplete,
-}: Props) {
-  const documentos = documentosPorTramite[tramite] || [];
+export default function DocumentUploadMock({ tramite, onComplete }: Props) {
+  const documentos = useMemo(
+    () => documentosPorTramite[tramite] || [],
+    [tramite]
+  );
+
   const storageKey = `docs-${tramite.toLowerCase().replace(/\s+/g, "-")}`;
 
-  const [uploaded, setUploaded] = useState<Record<string, boolean>>(
-    {}
-  );
+  const [uploaded, setUploaded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
@@ -55,9 +54,7 @@ export default function DocumentUploadMock({
           </div>
 
           {uploaded[doc.id] ? (
-            <span className="text-green-600 font-semibold">
-              Subido
-            </span>
+            <span className="text-green-600 font-semibold">Subido</span>
           ) : (
             <button
               onClick={() => handleUpload(doc.id)}

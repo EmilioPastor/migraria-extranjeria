@@ -3,7 +3,7 @@ import { supabaseServer } from "@/lib/supabaseServer";
 
 export async function POST(req: Request) {
   try {
-    const supabase = supabaseServer(); // ✅ instancia correcta
+    const supabase = supabaseServer();
 
     const formData = await req.formData();
 
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { error: "Error inesperado" },
       { status: 500 }

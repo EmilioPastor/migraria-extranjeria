@@ -5,11 +5,14 @@ export default function PortalCTA({
 }: {
   status: "favorable" | "not_favorable";
 }) {
+  const text =
+    status === "favorable"
+      ? "Tu resultado es favorable. Puedes continuar con el proceso legal."
+      : "Aunque el resultado no es favorable, podemos revisar tu caso.";
+
   return (
     <div className="mt-10 border rounded-lg p-6 bg-white">
-      <p className="text-sm text-gray-700 mb-4">
-        Si deseas continuar, puedes solicitar una cita con nuestro equipo legal.
-      </p>
+      <p className="text-sm text-gray-700 mb-4">{text}</p>
 
       <Link
         href="/pedir-cita"
