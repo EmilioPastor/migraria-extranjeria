@@ -1,47 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import PortalLayout from "@/components/portal/PortalLayout";
 import CaseSteps from "@/components/portal/CaseSteps";
 import CaseStatus from "@/components/portal/CaseStatus";
-import DocumentUploadMock from "@/components/portal/DocumentUploadMock";
-
-type CaseStatusType =
-  | "in_review"
-  | "favorable"
-  | "not_favorable";
+import DocumentUpload from "@/components/portal/DocumentUpload";
+import NextSteps from "@/components/portal/NextSteps";
+import PortalCTA from "@/components/portal/PortalCTA";
 
 type CaseData = {
+  id: string;
   tramite: string;
-  status: CaseStatusType;
+  status: "in_review" | "favorable" | "not_favorable";
   message?: string;
 };
 
 export default function PortalPage() {
+  const { token } = useParams();
   const [caseData, setCaseData] = useState<CaseData | null>(null);
-  const [docsComplete, setDocsComplete] = useState(false);
 
   useEffect(() => {
-    const raw = localStorage.getItem("migraria-demo-case");
-
-    if (raw) {
-      setCaseData(JSON.parse(raw));
-    } else {
-      setCaseData({
-        tramite: "Arraigo social",
-        status: "in_review",
-      });
-    }
-  }, []);
+    fetch(`/api/portal/case?token=${token}`)
+      .then((r) => r.json())
+      .then(setCaseData);
+  }, [token]);
 
   if (!caseData) return null;
 
   const step =
-    caseData.status === "in_review" && !docsComplete
-      ? 1
-      : caseData.status === "in_review"
-      ? 2
-      : 3;
+    caseData.status === "in_review" ? 2 : 3;
 
   return (
     <PortalLayout
@@ -52,23 +40,26 @@ export default function PortalPage() {
 
       <CaseStatus status={caseData.status} />
 
-      {caseData.status === "in_review" && !docsComplete && (
-        <DocumentUploadMock
+      {caseData.status === "in_review" && (
+        <DocumentUpload
+          caseId={caseData.id}
+          token={token as string}
           tramite={caseData.tramite}
-          onComplete={() => setDocsComplete(true)}
         />
       )}
 
-      {caseData.status === "favorable" && (
-        <p className="mt-6 text-green-700">
-          Puedes solicitar cita para continuar el trámite.
-        </p>
+      {caseData.message && (
+        <div className="mt-6 text-sm text-gray-700">
+          <strong>Mensaje del equipo legal:</strong>
+          <p className="mt-1">{caseData.message}</p>
+        </div>
       )}
 
-      {caseData.status === "not_favorable" && (
-        <p className="mt-6 text-red-700">
-          Te recomendamos solicitar asesoramiento personalizado.
-        </p>
+      <NextSteps status={caseData.status} />
+
+      {(caseData.status === "favorable" ||
+        caseData.status === "not_favorable") && (
+        <PortalCTA status={caseData.status} />
       )}
     </PortalLayout>
   );

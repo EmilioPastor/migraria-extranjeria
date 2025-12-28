@@ -5,30 +5,37 @@ export default function CaseStatus({
 }) {
   const map = {
     in_review: {
-      label: "En evaluación",
-      color: "bg-yellow-100 text-yellow-800",
-      text: "Estamos revisando tu documentación.",
+      title: "Tu documentación está siendo revisada",
+      color: "bg-yellow-50 border-yellow-200 text-yellow-800",
+      text:
+        "Nuestro equipo legal está evaluando la información aportada. Este proceso puede tardar unas horas.",
     },
     favorable: {
-      label: "Evaluación favorable",
-      color: "bg-green-100 text-green-800",
+      title: "Evaluación favorable",
+      color: "bg-green-50 border-green-200 text-green-800",
       text:
-        "Según la información aportada, el trámite es viable.",
+        "Según la documentación aportada, el trámite es viable. El siguiente paso es solicitar cita para continuar.",
     },
     not_favorable: {
-      label: "Evaluación no favorable",
-      color: "bg-red-100 text-red-800",
+      title: "Evaluación no favorable",
+      color: "bg-red-50 border-red-200 text-red-800",
       text:
-        "Con la documentación actual, el trámite presenta dificultades.",
+        "Con la información actual, el trámite presenta dificultades. Puedes solicitar asesoramiento personalizado.",
     },
   };
 
   const s = map[status];
 
   return (
-    <div className={`p-4 rounded ${s.color}`}>
-      <p className="font-semibold mb-1">{s.label}</p>
-      <p className="text-sm">{s.text}</p>
+    <div
+      className={`border rounded-lg p-6 ${s.color}`}
+    >
+      <h2 className="text-lg font-semibold mb-2">
+        {s.title}
+      </h2>
+      <p className="text-sm leading-relaxed">
+        {s.text}
+      </p>
     </div>
   );
 }
