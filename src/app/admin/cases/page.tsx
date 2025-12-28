@@ -1,35 +1,19 @@
-"use client";
-
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabaseBrowser";
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
+import LogoutButton from "./LogoutButton";
+
 export default function AdminCasesPage() {
-  const router = useRouter();
-
-  const logout = async () => {
-    await supabaseBrowser.auth.signOut();
-    router.push("/admin/login");
-  };
-
   return (
     <section className="max-w-6xl mx-auto py-20 px-6 space-y-8">
-      {/* HEADER */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold">
           Casos en evaluación
         </h1>
 
-        <button
-          onClick={logout}
-          className="text-sm text-red-600 hover:underline"
-        >
-          Cerrar sesión
-        </button>
+        <LogoutButton />
       </div>
 
-      {/* TABLA */}
       <div className="overflow-x-auto border border-gray-200 rounded">
         <table className="w-full">
           <thead className="bg-gray-50">
