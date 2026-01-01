@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import PortalLayout from "@/components/portal/PortalLayout";
 import CaseSteps from "@/components/portal/CaseSteps";
-import CaseStatus from "@/components/portal/CaseStatus";
 import DocumentUpload from "@/components/portal/DocumentUpload";
 import NextSteps from "@/components/portal/NextSteps";
 import PortalCTA from "@/components/portal/PortalCTA";
+import CaseStatus from "@/components/portal/CaseStatus";
+
 
 type CaseData = {
   id: string;

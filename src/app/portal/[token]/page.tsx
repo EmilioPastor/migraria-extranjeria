@@ -8,10 +8,16 @@ import CaseSteps from "@/components/portal/CaseSteps";
 import CaseStatus from "@/components/portal/CaseStatus";
 import DocumentUpload from "@/components/portal/DocumentUpload";
 
+type CaseStatusType =
+  | "pending"
+  | "in_review"
+  | "favorable"
+  | "not_favorable";
+
 type CaseData = {
   id: string;
   tramite: string;
-  status: "in_review" | "favorable" | "not_favorable";
+  status: CaseStatusType;
   message?: string;
 };
 
@@ -21,10 +27,14 @@ type ApiError = {
 
 export default function PortalPage() {
   const { token } = useParams<{ token: string }>();
+
   const [caseData, setCaseData] = useState<CaseData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  /* ===============================
+     CARGAR CASO POR TOKEN
+     =============================== */
   useEffect(() => {
     if (!token) return;
 
@@ -49,7 +59,9 @@ export default function PortalPage() {
       });
   }, [token]);
 
-  /* ---------- ESTADOS DE CARGA / ERROR ---------- */
+  /* ===============================
+     ESTADOS DE CARGA / ERROR
+     =============================== */
 
   if (loading) {
     return (
@@ -67,9 +79,16 @@ export default function PortalPage() {
     );
   }
 
-  /* ---------- UI NORMAL ---------- */
+  /* ===============================
+     UI NORMAL
+     =============================== */
 
-  const step = caseData.status === "in_review" ? 2 : 3;
+  const step =
+    caseData.status === "pending"
+      ? 1
+      : caseData.status === "in_review"
+      ? 2
+      : 3;
 
   return (
     <PortalLayout
@@ -80,7 +99,8 @@ export default function PortalPage() {
 
       <CaseStatus status={caseData.status} />
 
-      {caseData.status === "in_review" && (
+      {/* SOLO SE PUEDEN SUBIR DOCUMENTOS EN PENDING */}
+      {caseData.status === "pending" && (
         <DocumentUpload
           caseId={caseData.id}
           token={token}
@@ -88,6 +108,7 @@ export default function PortalPage() {
         />
       )}
 
+      {/* MENSAJE FINAL (SI EXISTE) */}
       {caseData.message && (
         <p className="mt-6 text-gray-700">
           {caseData.message}
