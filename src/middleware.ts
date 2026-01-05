@@ -1,34 +1,42 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-export function middleware(req: NextRequest) {
-  const role = req.cookies.get("admin-session")?.value;
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-  // Proteger /admin (excepto login)
-  if (
-    req.nextUrl.pathname.startsWith("/admin") &&
-    !req.nextUrl.pathname.startsWith("/admin/login")
-  ) {
-    // No sesión → login
-    if (!role) {
-      return NextResponse.redirect(
-        new URL("/admin/login", req.url)
-      );
-    }
-
-    // Rutas solo admin
-    if (
-      (req.nextUrl.pathname.startsWith("/admin/users") ||
-        req.nextUrl.pathname.startsWith("/admin/audit")) &&
-      role !== "admin"
-    ) {
-      return NextResponse.redirect(
-        new URL("/admin", req.url)
-      );
-    }
+  // 🔓 Login público
+  if (pathname === "/admin/login") {
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  const res = NextResponse.next();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (key) => req.cookies.get(key)?.value,
+        set: (key, value, options) =>
+          res.cookies.set({ name: key, value, ...options }),
+        remove: (key, options) =>
+          res.cookies.set({ name: key, value: "", ...options }),
+      },
+    }
+  );
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (pathname.startsWith("/admin") && !session) {
+    return NextResponse.redirect(
+      new URL("/admin/login", req.url)
+    );
+  }
+
+  return res;
 }
 
 export const config = {

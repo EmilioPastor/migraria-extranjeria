@@ -2,61 +2,118 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 
-type Document = {
-  id: string;
-  document_type: string;
-};
+/* ======================================================
+   TIPOS
+   ====================================================== */
+
+type CaseStatus =
+  | "pending"
+  | "in_review"
+  | "favorable"
+  | "not_favorable";
 
 type CaseData = {
   id: string;
   tramite: string;
-  status: "in_review" | "favorable" | "not_favorable";
+  status: CaseStatus;
+  message: string | null;
+  updated_at: string;
+  clients?: {
+    email?: string | null;
+  } | null;
 };
 
-export default function AdminCasePage() {
+type DocumentRow = {
+  id: string;
+  document_type: string;
+  file_path?: string;
+  uploaded_at: string;
+};
+
+type CaseEvent = {
+  id: string;
+  type: string;
+  description: string | null;
+  created_at: string;
+};
+
+/* ======================================================
+   PAGE
+   ====================================================== */
+
+export default function AdminCaseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
   const [caseData, setCaseData] = useState<CaseData | null>(null);
-  const [documents, setDocuments] = useState<Document[]>([]);
+
+  const [documents, setDocuments] = useState<DocumentRow[]>([]);
+  const [docsLoading, setDocsLoading] = useState(true);
+  const [docsError, setDocsError] = useState<string | null>(null);
+
+  const [events, setEvents] = useState<CaseEvent[]>([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  /* ======================================================
+  /* ===============================
      CARGA INICIAL
-     ====================================================== */
+     =============================== */
   useEffect(() => {
     const load = async () => {
-      const caseRes = await fetch(`/api/admin/case/get?id=${id}`);
-      const caseJson = await caseRes.json();
-      setCaseData(caseJson);
+      try {
+        /* ---- CASE ---- */
+        const caseRes = await fetch(`/api/admin/case/get?id=${id}`);
+        const caseJson = await caseRes.json();
+        setCaseData(caseJson);
+        setMessage(caseJson?.message ?? "");
 
-      const docsRes = await fetch(
-        `/api/admin/documents?caseId=${id}`
-      );
-      const docsJson = await docsRes.json();
-      setDocuments(docsJson);
+        /* ---- DOCUMENTS (ROBUSTO) ---- */
+        setDocsLoading(true);
+        setDocsError(null);
 
-      setLoading(false);
+        const docsRes = await fetch(
+          `/api/admin/documents?caseId=${id}`
+        );
+        const docsJson = await docsRes.json();
+
+        if (!Array.isArray(docsJson)) {
+          console.error("Respuesta inválida documentos:", docsJson);
+          setDocuments([]);
+        } else {
+          setDocuments(docsJson);
+        }
+
+        setDocsLoading(false);
+
+        /* ---- EVENTS ---- */
+        const eventsRes = await fetch(
+          `/api/admin/case/events?caseId=${id}`
+        );
+        const eventsJson = await eventsRes.json();
+        setEvents(Array.isArray(eventsJson) ? eventsJson : []);
+      } catch (e) {
+        console.error("Error cargando detalle del caso", e);
+        setDocsError("Error cargando documentación");
+      } finally {
+        setLoading(false);
+        setDocsLoading(false);
+      }
     };
 
     load();
   }, [id]);
 
-  /* ======================================================
-     GUARDAR DECISIÓN
-     ====================================================== */
-  const saveCase = async (
-    status: "favorable" | "not_favorable"
-  ) => {
+  const updateStatus = async (status: CaseStatus) => {
+    if (!caseData) return;
+
     setSaving(true);
 
     await fetch("/api/admin/case/update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({
         caseId: id,
         status,
@@ -68,131 +125,216 @@ export default function AdminCasePage() {
       }),
     });
 
-    setSaving(false);
     router.push("/admin/cases");
   };
 
-  if (loading || !caseData) return null;
+  if (loading || !caseData) {
+    return (
+      <div className="p-20 text-center text-gray-500">
+        Cargando expediente…
+      </div>
+    );
+  }
+
+  /* ======================================================
+     UI
+     ====================================================== */
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12 space-y-12">
+    <section className="max-w-7xl mx-auto px-6 py-10 space-y-12">
 
-      {/* ======================================================
-         HEADER · IDENTIDAD DEL CASO
-         ====================================================== */}
-      <header className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Evaluación del caso
-          </h1>
-          <p className="text-gray-500 mt-1">
-            {caseData.tramite}
-          </p>
-        </div>
-
-        <StatusPill status={caseData.status} />
-      </header>
-
-      {/* ======================================================
-         BLOQUE DOCUMENTOS
-         ====================================================== */}
-      <section className="bg-white border rounded-xl shadow-sm p-6">
-        <h2 className="text-lg font-semibold mb-4">
-          Documentación aportada
-        </h2>
-
-        {documents.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <ul className="space-y-3">
-            {documents.map((doc) => (
-              <li
-                key={doc.id}
-                className="flex items-center justify-between border rounded-lg px-4 py-3 hover:bg-gray-50 transition"
-              >
-                <div className="flex items-center gap-3">
-                  <DocumentIcon />
-                  <span className="font-medium">
-                    {humanize(doc.document_type)}
-                  </span>
-                </div>
-
-                <a
-                  href={`/api/documents/${doc.id}/download`}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  Descargar →
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* ======================================================
-         MENSAJE AL CLIENTE
-         ====================================================== */}
-      <section className="bg-white border rounded-xl shadow-sm p-6">
-        <h2 className="text-lg font-semibold mb-2">
-          Mensaje para el cliente
-        </h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Este mensaje se mostrará en el área privada del cliente.
-        </p>
-
-        <textarea
-          className="w-full border rounded-lg p-4 min-h-[140px] focus:outline-none focus:ring-2 focus:ring-blue-200"
-          placeholder="Redacta aquí un mensaje claro y orientativo para el cliente…"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-      </section>
-
-      {/* ======================================================
-         ACCIONES FINALES
-         ====================================================== */}
-      <section className="flex items-center justify-between bg-gray-50 border rounded-xl p-6">
-        <button
-          onClick={() => router.push("/admin/cases")}
-          className="text-sm text-gray-600 hover:text-gray-900"
+      {/* ================= HEADER ================= */}
+      <header className="space-y-2">
+        <Link
+          href="/admin/cases"
+          className="text-sm text-gray-500 hover:underline"
         >
           ← Volver a casos
-        </button>
+        </Link>
 
-        <div className="flex gap-4">
-          <button
-            disabled={saving}
-            onClick={() => saveCase("not_favorable")}
-            className="px-6 py-3 rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition"
-          >
-            No favorable
-          </button>
+        <h1 className="text-3xl font-semibold">
+          Caso · {caseData.tramite}
+        </h1>
 
-          <button
-            disabled={saving}
-            onClick={() => saveCase("favorable")}
-            className="px-6 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition"
-          >
-            Marcar como favorable
-          </button>
+        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+          <span>
+            Cliente:{" "}
+            <strong>
+              {caseData.clients?.email ?? "—"}
+            </strong>
+          </span>
+          <StatusBadge status={caseData.status} />
         </div>
-      </section>
+      </header>
+
+      {/* ================= GRID ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        {/* ================= DOCUMENTOS ================= */}
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="text-lg font-semibold">
+            Documentación aportada
+          </h2>
+
+          <div className="bg-white border rounded-xl divide-y">
+            {docsLoading ? (
+              <div className="p-6 text-sm text-gray-500">
+                Cargando documentos…
+              </div>
+            ) : docsError ? (
+              <div className="p-6 text-sm text-red-600">
+                {docsError}
+              </div>
+            ) : documents.length === 0 ? (
+              <div className="p-6 text-sm text-gray-500">
+                El cliente aún no ha subido documentos.
+              </div>
+            ) : (
+              documents.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="p-4 flex items-center justify-between"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {doc.document_type}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Subido el{" "}
+                      {new Date(doc.uploaded_at).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  {doc.file_path ? (
+                    <button
+                      onClick={async () => {
+                        const res = await fetch(
+                          "/api/admin/documents/signed-url",
+                          {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              filePath: doc.file_path,
+                            }),
+                          }
+                        );
+
+                        const data = await res.json();
+
+                        if (data?.url) {
+                          window.open(data.url, "_blank");
+                        } else {
+                          alert("No se pudo abrir el archivo");
+                        }
+                      }}
+                      className="text-blue-600 text-sm hover:underline"
+                    >
+                      Ver archivo →
+                    </button>
+
+                  ) : (
+                    <span className="text-xs text-gray-400">
+                      Archivo no disponible
+                    </span>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* ================= DECISIÓN ================= */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">
+            Decisión del caso
+          </h2>
+
+          <div className="bg-white border rounded-xl p-4 space-y-4">
+            <textarea
+              className="w-full border rounded p-3 text-sm min-h-[120px]"
+              placeholder="Mensaje que verá el cliente"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+
+            <div className="flex flex-col gap-2">
+              <button
+                disabled={saving}
+                onClick={() => updateStatus("favorable")}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+              >
+                Marcar como favorable
+              </button>
+
+              <button
+                disabled={saving}
+                onClick={() => updateStatus("not_favorable")}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+              >
+                Marcar como no favorable
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= TIMELINE ================= */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">
+          Historial del expediente
+        </h2>
+
+        <div className="bg-white border rounded-xl divide-y">
+          {events.length === 0 ? (
+            <div className="p-6 text-sm text-gray-500">
+              Sin eventos registrados.
+            </div>
+          ) : (
+            events.map((ev) => (
+              <div
+                key={ev.id}
+                className="p-4 flex gap-4"
+              >
+                <div className="w-2 h-2 mt-2 rounded-full bg-blue-500" />
+
+                <div className="flex-1">
+                  <p className="text-sm font-medium">
+                    {humanEvent(ev.type)}
+                  </p>
+
+                  {ev.description && (
+                    <p className="text-sm text-gray-600">
+                      {ev.description}
+                    </p>
+                  )}
+
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(ev.created_at).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </section>
   );
 }
 
 /* ======================================================
-   COMPONENTES AUXILIARES
+   UI HELPERS
    ====================================================== */
 
-function StatusPill({ status }: { status: string }) {
+function StatusBadge({ status }: { status: CaseStatus }) {
   const styles: Record<string, string> = {
-    in_review: "bg-yellow-100 text-yellow-800",
-    favorable: "bg-green-100 text-green-800",
-    not_favorable: "bg-red-100 text-red-800",
+    pending: "bg-blue-100 text-blue-700",
+    in_review: "bg-yellow-100 text-yellow-700",
+    favorable: "bg-green-100 text-green-700",
+    not_favorable: "bg-red-100 text-red-700",
   };
 
   const labels: Record<string, string> = {
+    pending: "Pendiente",
     in_review: "En revisión",
     favorable: "Favorable",
     not_favorable: "No favorable",
@@ -200,33 +342,20 @@ function StatusPill({ status }: { status: string }) {
 
   return (
     <span
-      className={`px-4 py-1.5 rounded-full text-sm font-medium ${
-        styles[status]
-      }`}
+      className={`px-3 py-1 rounded-full text-xs font-medium ${styles[status]}`}
     >
       {labels[status]}
     </span>
   );
 }
 
-function EmptyState() {
-  return (
-    <div className="border border-dashed rounded-lg p-8 text-center text-gray-500">
-      El cliente aún no ha subido documentación.
-    </div>
-  );
-}
+function humanEvent(type: string) {
+  const map: Record<string, string> = {
+    CASE_CREATED: "Caso creado",
+    DOCUMENT_UPLOADED: "Documento subido",
+    STATUS_CHANGED: "Cambio de estado",
+    MESSAGE_SENT: "Mensaje al cliente",
+  };
 
-function DocumentIcon() {
-  return (
-    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600">
-      📄
-    </span>
-  );
-}
-
-function humanize(value: string) {
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (l) => l.toUpperCase());
+  return map[type] ?? type;
 }

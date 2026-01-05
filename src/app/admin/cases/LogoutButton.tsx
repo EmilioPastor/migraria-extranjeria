@@ -9,14 +9,11 @@ export default function LogoutButton() {
   const logout = async () => {
     const supabase = supabaseBrowser();
     await supabase.auth.signOut();
-    router.push("/admin/login");
+    router.replace("/admin/login");
   };
 
   return (
-    <button
-      onClick={logout}
-      className="text-sm text-red-600 hover:underline"
-    >
+    <button className="text-red-600" onClick={logout}>
       Cerrar sesión
     </button>
   );

@@ -14,11 +14,16 @@ export async function GET(req: Request) {
 
   const supabase = supabaseAdmin();
 
+  /* ===============================
+     1️⃣ VALIDAR TOKEN
+     =============================== */
   const { data: tokenData, error: tokenError } = await supabase
     .from("access_tokens")
     .select("case_id, expires_at, used")
     .eq("token", token)
     .single();
+
+  console.log("TOKEN DATA 👉", tokenData);
 
   if (
     tokenError ||
@@ -33,11 +38,16 @@ export async function GET(req: Request) {
     );
   }
 
+  /* ===============================
+     2️⃣ OBTENER CASO (SIN RELACIONES)
+     =============================== */
   const { data: caseData, error: caseError } = await supabase
     .from("cases")
     .select("*")
     .eq("id", tokenData.case_id)
-    .single();
+    .maybeSingle(); // 🔥 CLAVE
+
+  console.log("CASE DATA 👉", caseData);
 
   if (caseError || !caseData) {
     return NextResponse.json(
@@ -46,5 +56,8 @@ export async function GET(req: Request) {
     );
   }
 
+  /* ===============================
+     3️⃣ RESPUESTA OK
+     =============================== */
   return NextResponse.json(caseData);
 }

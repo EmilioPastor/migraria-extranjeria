@@ -8,7 +8,11 @@ import CaseSteps from "@/components/portal/CaseSteps";
 import CaseStatus from "@/components/portal/CaseStatus";
 import DocumentUpload from "@/components/portal/DocumentUpload";
 
-type CaseStatusType =
+/* ===============================
+   TIPOS
+   =============================== */
+
+export type CaseStatusType =
   | "pending"
   | "in_review"
   | "favorable"
@@ -16,47 +20,63 @@ type CaseStatusType =
 
 type CaseData = {
   id: string;
-  tramite: string;
+  tramite: string;        // Nombre visible
+  tramite_key: string;    // Clave lógica (CRÍTICA)
   status: CaseStatusType;
-  message?: string;
+  message?: string | null;
 };
 
 type ApiError = {
   error: string;
 };
 
+/* ===============================
+   COMPONENTE
+   =============================== */
+
 export default function PortalPage() {
-  const { token } = useParams<{ token: string }>();
+  const params = useParams<{ token: string }>();
+  const token = params?.token;
 
   const [caseData, setCaseData] = useState<CaseData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   /* ===============================
-     CARGAR CASO POR TOKEN
+     CARGA DEL CASO POR TOKEN
      =============================== */
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setError("Token no proporcionado");
+      setLoading(false);
+      return;
+    }
 
-    fetch(`/api/portal/case?token=${token}`)
-      .then(async (r) => {
-        if (!r.ok) {
-          const err = (await r.json()) as ApiError;
-          throw new Error(err?.error || "Token inválido");
+    const loadCase = async () => {
+      try {
+        const res = await fetch(`/api/portal/case?token=${token}`);
+
+        if (!res.ok) {
+          const err = (await res.json()) as ApiError;
+          throw new Error(err?.error || "Acceso no válido");
         }
-        return r.json();
-      })
-      .then((data: CaseData) => {
+
+        const data = (await res.json()) as CaseData;
         setCaseData(data);
         setError(null);
-      })
-      .catch((err) => {
+      } catch (err) {
         setCaseData(null);
-        setError(err.message);
-      })
-      .finally(() => {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Error inesperado"
+        );
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    loadCase();
   }, [token]);
 
   /* ===============================
@@ -65,7 +85,7 @@ export default function PortalPage() {
 
   if (loading) {
     return (
-      <div className="p-10 text-center text-gray-500">
+      <div className="py-24 text-center text-gray-500">
         Cargando información del caso…
       </div>
     );
@@ -73,46 +93,52 @@ export default function PortalPage() {
 
   if (error || !caseData) {
     return (
-      <div className="p-10 text-center text-red-600">
+      <div className="py-24 text-center text-red-600">
         Enlace no válido, expirado o ya utilizado.
       </div>
     );
   }
 
   /* ===============================
-     UI NORMAL
+     LÓGICA DE PASOS
      =============================== */
 
-  const step =
+  const step: 1 | 2 | 3 =
     caseData.status === "pending"
       ? 1
       : caseData.status === "in_review"
       ? 2
       : 3;
 
+  /* ===============================
+     RENDER
+     =============================== */
+
   return (
     <PortalLayout
       title="Área privada del cliente"
       statusLabel={caseData.status}
     >
+      {/* PROGRESO */}
       <CaseSteps step={step} />
 
+      {/* ESTADO ACTUAL */}
       <CaseStatus status={caseData.status} />
 
-      {/* SOLO SE PUEDEN SUBIR DOCUMENTOS EN PENDING */}
+      {/* SUBIDA DE DOCUMENTOS */}
       {caseData.status === "pending" && (
         <DocumentUpload
           caseId={caseData.id}
           token={token}
-          tramite={caseData.tramite}
+          tramite={caseData.tramite_key}
         />
       )}
 
-      {/* MENSAJE FINAL (SI EXISTE) */}
+      {/* MENSAJE FINAL DEL ABOGADO */}
       {caseData.message && (
-        <p className="mt-6 text-gray-700">
+        <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-5 text-gray-700">
           {caseData.message}
-        </p>
+        </div>
       )}
     </PortalLayout>
   );

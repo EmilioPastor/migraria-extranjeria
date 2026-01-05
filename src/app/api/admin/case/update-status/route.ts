@@ -38,7 +38,7 @@ export async function POST(req: Request) {
           .map((d) => d.id) || [];
 
       const { data: uploadedDocs } = await supabase
-        .from("case_documents")
+        .from("casedocuments")
         .select("document_type")
         .eq("case_id", caseId);
 

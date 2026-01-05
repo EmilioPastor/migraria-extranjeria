@@ -1,153 +1,184 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+type Tramite = {
+  id: string;
+  label: string;
+  key: string;
+  description?: string;
+  active: boolean;
+};
 
 export default function NewCasePage() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
-  const [tramite, setTramite] = useState("");
-  const [tramiteKey, setTramiteKey] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [tramites, setTramites] = useState<Tramite[]>([]);
+  const [tramiteId, setTramiteId] = useState<string>("");
 
-  const submit = async () => {
+  const [loading, setLoading] = useState(false);
+  const [loadingTramites, setLoadingTramites] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const selectedTramite = tramites.find(
+    (t) => t.id === tramiteId
+  );
+
+  /* ===============================
+     CARGAR TRÁMITES
+     =============================== */
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch("/api/admin/tramites");
+        const data = await res.json();
+        setTramites(data);
+      } catch {
+        setError("Error cargando trámites");
+      } finally {
+        setLoadingTramites(false);
+      }
+    };
+
+    load();
+  }, []);
+
+  /* ===============================
+     CREAR CASO
+     =============================== */
+  const handleSubmit = async () => {
     setError(null);
 
-    if (!email || !tramite || !tramiteKey) {
-      setError("Completa todos los campos");
+    if (!email || !selectedTramite) {
+      setError("Datos incompletos");
       return;
     }
+
+    const payload = {
+      clientEmail: email,
+      tramite: selectedTramite.label,
+      tramite_key: selectedTramite.key,
+    };
+
+    console.log("PAYLOAD 👉", payload);
 
     setLoading(true);
 
-    const res = await fetch(
-      "/api/admin/create-client-case",
-      {
+    try {
+      const res = await fetch("/api/admin/create-case", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clientEmail: email,
-          tramite,
-          tramite_key: tramiteKey,
-        }),
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Error creando el caso");
       }
-    );
 
-    const json = await res.json();
-
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(json.error || "Error inesperado");
-      return;
-    }
-
-    setSuccess(true);
-
-    setTimeout(() => {
       router.push("/admin/cases");
-    }, 1500);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error inesperado"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
+  /* ===============================
+     UI
+     =============================== */
   return (
-    <section className="max-w-xl mx-auto px-6 py-12 space-y-8">
+    <section className="max-w-xl mx-auto py-20 px-6">
+      <h1 className="text-3xl font-semibold mb-2">
+        Nuevo caso
+      </h1>
+      <p className="text-gray-600 mb-8">
+        Crear cliente, caso y acceso en un solo paso
+      </p>
 
-      {/* HEADER */}
-      <header>
-        <h1 className="text-3xl font-semibold">
-          Nuevo caso
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Crear cliente, caso y acceso en un solo paso
-        </p>
-      </header>
+      <div className="rounded-xl border bg-white p-6 space-y-6">
+        {/* EMAIL */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Email del cliente
+          </label>
+          <input
+            type="email"
+            className="w-full border rounded px-4 py-2"
+            placeholder="cliente@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
 
-      {/* FORM */}
-      <div className="bg-white border rounded-xl p-6 space-y-5">
+        {/* TRÁMITE */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Trámite
+          </label>
 
-        <Field
-          label="Email del cliente"
-          value={email}
-          onChange={setEmail}
-          placeholder="cliente@email.com"
-        />
+          {loadingTramites ? (
+            <p className="text-sm text-gray-500">
+              Cargando trámites…
+            </p>
+          ) : (
+            <select
+              className="w-full border rounded px-4 py-2"
+              value={tramiteId}
+              onChange={(e) =>
+                setTramiteId(e.target.value)
+              }
+            >
+              <option value="">
+                Selecciona un trámite
+              </option>
+              {tramites.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          )}
 
-        <Field
-          label="Trámite"
-          value={tramite}
-          onChange={setTramite}
-          placeholder="Arraigo social"
-        />
+          {selectedTramite?.description && (
+            <p className="mt-2 text-sm text-gray-500">
+              {selectedTramite.description}
+            </p>
+          )}
+        </div>
 
-        <Field
-          label="Clave interna del trámite"
-          value={tramiteKey}
-          onChange={setTramiteKey}
-          placeholder="arraigo_social"
-        />
-
+        {/* ERROR */}
         {error && (
           <p className="text-sm text-red-600">
             {error}
           </p>
         )}
 
-        {success && (
-          <p className="text-sm text-green-600">
-            Acceso enviado al cliente correctamente
-          </p>
-        )}
-
-        <div className="flex justify-between items-center pt-4">
+        {/* ACCIONES */}
+        <div className="flex justify-between pt-4">
           <button
-            onClick={() => router.push("/admin/cases")}
-            className="text-sm text-gray-600 hover:text-gray-900"
+            onClick={() => router.back()}
+            className="text-sm text-gray-600 hover:underline"
           >
             ← Cancelar
           </button>
 
           <button
-            onClick={submit}
-            disabled={loading}
-            className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+            onClick={handleSubmit}
+            disabled={loading || loadingTramites}
+            className="px-6 py-3 bg-blue-600 text-white rounded disabled:opacity-50"
           >
-            {loading ? "Creando..." : "Crear caso"}
+            {loading ? "Creando…" : "Crear caso"}
           </button>
         </div>
       </div>
     </section>
-  );
-}
-
-/* ======================================================
-   COMPONENTE CAMPO
-   ====================================================== */
-
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <div className="space-y-1">
-      <label className="text-sm font-medium">
-        {label}
-      </label>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-      />
-    </div>
   );
 }

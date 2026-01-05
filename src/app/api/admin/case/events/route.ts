@@ -15,23 +15,17 @@ export async function GET(req: Request) {
   const supabase = supabaseAdmin();
 
   const { data, error } = await supabase
-    .from("case_documents")
-    .select(`
-      id,
-      document_type,
-      file_path,
-      uploaded_at
-    `)
+    .from("case_events")
+    .select("*")
     .eq("case_id", caseId)
-    .order("uploaded_at", { ascending: true });
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error cargando documentos admin:", error);
     return NextResponse.json(
-      { error: "Error cargando documentos" },
+      { error: "Error cargando eventos" },
       { status: 500 }
     );
   }
 
-  return NextResponse.json(data ?? []);
+  return NextResponse.json(data);
 }

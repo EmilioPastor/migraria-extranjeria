@@ -1,102 +1,70 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabaseBrowser } from "@/lib/supabaseBrowser";
 
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
-  const [step, setStep] = useState<"login" | "2fa">("login");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const login = async () => {
-    setError("");
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+  const submit = async () => {
+    setLoading(true);
+    setError(null);
+
+    const supabase = supabaseBrowser();
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
-    const data = await res.json();
+    setLoading(false);
 
-    if (!res.ok) {
-      setError(data.error || "Error");
+    if (error) {
+      setError("Credenciales inválidas");
       return;
     }
 
-    if (data.twoFactorRequired) {
-      setStep("2fa");
-      return;
-    }
-
-    window.location.href = "/admin";
-  };
-
-  const verify = async () => {
-    setError("");
-    const res = await fetch("/api/admin/verify-2fa", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.error || "Error");
-      return;
-    }
-
-    window.location.href = "/admin";
+    router.replace("/admin/dashboard");
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-sm border p-6 rounded space-y-4">
-        <h1 className="text-xl font-semibold">Acceso interno</h1>
+    <section className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white border rounded-xl p-6 w-full max-w-sm space-y-4">
+        <h1 className="text-xl font-semibold text-center">
+          Acceso administración
+        </h1>
 
-        {step === "login" && (
-          <>
-            <input
-              className="w-full border p-2"
-              placeholder="Email"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              className="w-full border p-2"
-              type="password"
-              placeholder="Contraseña"
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-              onClick={login}
-              className="w-full bg-[var(--primary)] text-white py-2 rounded"
-            >
-              Entrar
-            </button>
-          </>
+        <input
+          placeholder="Email"
+          className="w-full border p-3 rounded"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
+          placeholder="Contraseña"
+          type="password"
+          className="w-full border p-3 rounded"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        {error && (
+          <p className="text-red-600 text-sm">{error}</p>
         )}
 
-        {step === "2fa" && (
-          <>
-            <p className="text-sm text-gray-600">
-              Introduce el código enviado a tu email
-            </p>
-            <input
-              className="w-full border p-2"
-              placeholder="Código 2FA"
-              onChange={(e) => setCode(e.target.value)}
-            />
-            <button
-              onClick={verify}
-              className="w-full bg-[var(--primary)] text-white py-2 rounded"
-            >
-              Verificar
-            </button>
-          </>
-        )}
-
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        <button
+          onClick={submit}
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-3 rounded"
+        >
+          {loading ? "Entrando..." : "Iniciar sesión"}
+        </button>
       </div>
     </section>
   );
