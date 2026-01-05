@@ -16,12 +16,6 @@ type CaseData = {
   status: "pending" | "in_review" | "favorable" | "not_favorable";
   message?: string;
 };
-type CaseStatusType =
-  | "pending"
-  | "in_review"
-  | "favorable"
-  | "not_favorable";
-
 
 export default function PortalPage() {
   const { token } = useParams();
@@ -39,8 +33,8 @@ export default function PortalPage() {
     caseData.status === "pending"
       ? 1
       : caseData.status === "in_review"
-        ? 2
-        : 3;
+      ? 2
+      : 3;
 
   return (
     <PortalLayout
@@ -59,7 +53,6 @@ export default function PortalPage() {
         />
       )}
 
-
       {caseData.message && (
         <div className="mt-6 text-sm text-gray-700">
           <strong>Mensaje del equipo legal:</strong>
@@ -71,8 +64,8 @@ export default function PortalPage() {
 
       {(caseData.status === "favorable" ||
         caseData.status === "not_favorable") && (
-          <PortalCTA status={caseData.status} />
-        )}
+        <PortalCTA status={caseData.status} />
+      )}
     </PortalLayout>
   );
 }

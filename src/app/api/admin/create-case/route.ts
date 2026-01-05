@@ -100,7 +100,7 @@ export async function POST(req: Request) {
       caseId: newCase.id,
       token,
     });
-  } catch (err) {
+  } catch (_) {
     return NextResponse.json(
       { error: "Error interno" },
       { status: 500 }

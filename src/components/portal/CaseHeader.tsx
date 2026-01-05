@@ -1,7 +1,6 @@
 type Props = {
   tramite: string;
   email?: string | null;
-  status: string;
   requiredCount: number;
   uploadedCount: number;
 };
@@ -9,7 +8,6 @@ type Props = {
 export default function CaseHeader({
   tramite,
   email,
-  status,
   requiredCount,
   uploadedCount,
 }: Props) {
