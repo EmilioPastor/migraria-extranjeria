@@ -92,7 +92,7 @@ export async function POST(req: Request) {
       description: "Caso creado por el administrador",
     });
 
-    /* 🔥 CLAVE: invalidar caché */
+    /* 🔥 invalidar caché */
     revalidatePath("/admin/cases");
 
     return NextResponse.json({
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
       caseId: newCase.id,
       token,
     });
-  } catch (_) {
+  } catch {
     return NextResponse.json(
       { error: "Error interno" },
       { status: 500 }
