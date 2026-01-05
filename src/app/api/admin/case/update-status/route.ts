@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     /* 1️⃣ Obtener el caso */
     const { data: caseData, error: caseError } = await supabase
       .from("cases")
-      .select("id, tramite")
+      .select("id, tramite_key")
       .eq("id", caseId)
       .single();
 
@@ -32,19 +32,21 @@ export async function POST(req: Request) {
 
     /* 2️⃣ Si se quiere pasar a in_review, comprobar documentos */
     if (status === "in_review") {
+      const tramiteKey =
+        caseData.tramite_key as keyof typeof documentosPorTramite;
+
       const requiredDocs =
-        documentosPorTramite[caseData.tramite]
+        documentosPorTramite[tramiteKey]
           ?.filter((d) => d.required)
-          .map((d) => d.id) || [];
+          .map((d) => d.id) ?? [];
 
       const { data: uploadedDocs } = await supabase
-        .from("casedocuments")
+        .from("case_documents")
         .select("document_type")
         .eq("case_id", caseId);
 
-      const uploaded = uploadedDocs?.map(
-        (d) => d.document_type
-      ) || [];
+      const uploaded =
+        uploadedDocs?.map((d) => d.document_type) ?? [];
 
       const allRequiredUploaded = requiredDocs.every((doc) =>
         uploaded.includes(doc)
@@ -61,7 +63,7 @@ export async function POST(req: Request) {
       }
     }
 
-    /* 3️⃣ ACTUALIZAR EL ESTADO REAL EN BD */
+    /* 3️⃣ ACTUALIZAR ESTADO */
     const { error: updateError } = await supabase
       .from("cases")
       .update({ status })
@@ -74,7 +76,7 @@ export async function POST(req: Request) {
       );
     }
 
-    /* 4️⃣ LOG DE AUDITORÍA */
+    /* 4️⃣ LOG */
     await logAdminAction(
       adminEmail,
       "CASE_STATUS_CHANGED",
