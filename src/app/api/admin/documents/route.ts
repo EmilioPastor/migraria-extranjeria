@@ -20,18 +20,24 @@ export async function GET(req: Request) {
       id,
       document_type,
       file_path,
+      file_name,
+      mime_type,
       uploaded_at
     `)
     .eq("case_id", caseId)
-    .order("uploaded_at", { ascending: true });
+    .order("uploaded_at", { ascending: false });
 
   if (error) {
-    console.error("Error cargando documentos admin:", error);
+    console.error("DOCUMENTS ERROR:", error);
     return NextResponse.json(
       { error: "Error cargando documentos" },
       { status: 500 }
     );
   }
 
-  return NextResponse.json(data ?? []);
+  return NextResponse.json(data ?? [], {
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
 }

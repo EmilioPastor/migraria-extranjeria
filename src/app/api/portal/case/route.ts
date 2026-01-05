@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const token = searchParams.get("token");
@@ -14,23 +16,18 @@ export async function GET(req: Request) {
 
   const supabase = supabaseAdmin();
 
-  /* ===============================
-     1️⃣ VALIDAR TOKEN
-     =============================== */
-  const { data: tokenData, error: tokenError } = await supabase
+  // 1️⃣ TOKEN
+  const { data: tokenRow } = await supabase
     .from("access_tokens")
     .select("case_id, expires_at, used")
     .eq("token", token)
-    .single();
-
-  console.log("TOKEN DATA 👉", tokenData);
+    .maybeSingle();
 
   if (
-    tokenError ||
-    !tokenData ||
-    tokenData.used ||
-    (tokenData.expires_at &&
-      new Date(tokenData.expires_at) < new Date())
+    !tokenRow ||
+    tokenRow.used ||
+    (tokenRow.expires_at &&
+      new Date(tokenRow.expires_at) < new Date())
   ) {
     return NextResponse.json(
       { error: "Token inválido o expirado" },
@@ -38,26 +35,19 @@ export async function GET(req: Request) {
     );
   }
 
-  /* ===============================
-     2️⃣ OBTENER CASO (SIN RELACIONES)
-     =============================== */
-  const { data: caseData, error: caseError } = await supabase
+  // 2️⃣ CASO (🔥 FIX AQUÍ)
+  const { data: caseData } = await supabase
     .from("cases")
-    .select("*")
-    .eq("id", tokenData.case_id)
-    .maybeSingle(); // 🔥 CLAVE
+    .select("*") // 👈 CLAVE
+    .eq("id", tokenRow.case_id)
+    .maybeSingle();
 
-  console.log("CASE DATA 👉", caseData);
-
-  if (caseError || !caseData) {
+  if (!caseData) {
     return NextResponse.json(
       { error: "Caso no encontrado" },
       { status: 404 }
     );
   }
 
-  /* ===============================
-     3️⃣ RESPUESTA OK
-     =============================== */
   return NextResponse.json(caseData);
 }

@@ -1,8 +1,18 @@
+type PortalStatus =
+  | "pending"
+  | "in_review"
+  | "favorable"
+  | "not_favorable";
+
 export default function NextSteps({
   status,
 }: {
-  status: "in_review" | "favorable" | "not_favorable";
+  status: PortalStatus;
 }) {
+  if (status === "pending") {
+    return null;
+  }
+
   if (status === "in_review") {
     return (
       <div className="mt-8 border rounded-lg p-6 bg-gray-50">
@@ -12,7 +22,9 @@ export default function NextSteps({
         <ul className="list-disc ml-5 text-sm text-gray-700 space-y-1">
           <li>Revisamos la documentación aportada</li>
           <li>Evaluamos la viabilidad legal</li>
-          <li>Te informamos del resultado en este mismo espacio</li>
+          <li>
+            Te informamos del resultado en este mismo espacio
+          </li>
         </ul>
       </div>
     );

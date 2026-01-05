@@ -1,45 +1,52 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { randomUUID } from "crypto";
+import { revalidatePath } from "next/cache";
 
 export async function POST(req: Request) {
-  const body = await req.json();
+  try {
+    const body = await req.json();
+    const { clientEmail, tramite, tramite_key } = body;
 
-  console.log("CREATE CASE BODY 👉", body);
+    if (!clientEmail || !tramite || !tramite_key) {
+      return NextResponse.json(
+        { error: "Datos incompletos" },
+        { status: 400 }
+      );
+    }
 
-  const { clientEmail, tramite, tramite_key } = body;
+    const supabase = supabaseAdmin();
 
-  if (!clientEmail || !tramite || !tramite_key) {
-    return NextResponse.json(
-      { error: "Datos incompletos", body },
-      { status: 400 }
-    );
-  }
+    /* CLIENTE */
+    let clientId: string;
 
-  const supabase = supabaseAdmin();
-
-  // CLIENTE
-  const { data: existing } = await supabase
-    .from("clients")
-    .select("id")
-    .eq("email", clientEmail)
-    .single();
-
-  let clientId = existing?.id;
-
-  if (!clientId) {
-    const { data: newClient } = await supabase
+    const { data: existingClient } = await supabase
       .from("clients")
-      .insert({ email: clientEmail })
-      .select()
-      .single();
+      .select("id")
+      .eq("email", clientEmail)
+      .maybeSingle();
 
-    clientId = newClient.id;
-  }
+    if (existingClient) {
+      clientId = existingClient.id;
+    } else {
+      const { data: newClient, error } = await supabase
+        .from("clients")
+        .insert({ email: clientEmail })
+        .select("id")
+        .single();
 
-  // CASO
-  const { data: caseData, error: caseError } =
-    await supabase
+      if (error || !newClient) {
+        return NextResponse.json(
+          { error: "Error creando cliente" },
+          { status: 500 }
+        );
+      }
+
+      clientId = newClient.id;
+    }
+
+    /* CASO */
+    const { data: newCase, error: caseError } = await supabase
       .from("cases")
       .insert({
         client_id: clientId,
@@ -50,23 +57,53 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-  if (caseError) {
+    if (caseError || !newCase) {
+      return NextResponse.json(
+        { error: "Error creando el caso" },
+        { status: 500 }
+      );
+    }
+
+    /* TOKEN */
+    const token = randomUUID();
+
+    const { error: tokenError } = await supabase
+      .from("access_tokens")
+      .insert({
+        token,
+        case_id: newCase.id,
+        used: false,
+        expires_at: new Date(
+          Date.now() + 1000 * 60 * 60 * 24 * 7
+        ).toISOString(),
+      });
+
+    if (tokenError) {
+      return NextResponse.json(
+        { error: "Error creando token" },
+        { status: 500 }
+      );
+    }
+
+    /* EVENTO */
+    await supabase.from("case_events").insert({
+      case_id: newCase.id,
+      type: "CASE_CREATED",
+      description: "Caso creado por el administrador",
+    });
+
+    /* 🔥 CLAVE: invalidar caché */
+    revalidatePath("/admin/cases");
+
+    return NextResponse.json({
+      ok: true,
+      caseId: newCase.id,
+      token,
+    });
+  } catch (err) {
     return NextResponse.json(
-      { error: "Error creando caso" },
+      { error: "Error interno" },
       { status: 500 }
     );
   }
-
-  // TOKEN
-  const token = randomUUID();
-
-  await supabase.from("access_tokens").insert({
-    token,
-    case_id: caseData.id,
-    expires_at: new Date(
-      Date.now() + 1000 * 60 * 60 * 24 * 7
-    ),
-  });
-
-  return NextResponse.json({ ok: true });
 }

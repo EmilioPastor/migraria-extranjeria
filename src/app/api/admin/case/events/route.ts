@@ -16,16 +16,26 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from("case_events")
-    .select("*")
+    .select(`
+      id,
+      type,
+      description,
+      created_at
+    `)
     .eq("case_id", caseId)
     .order("created_at", { ascending: false });
 
   if (error) {
+    console.error("EVENTS ERROR:", error);
     return NextResponse.json(
       { error: "Error cargando eventos" },
       { status: 500 }
     );
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json(data ?? [], {
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
 }

@@ -1,5 +1,10 @@
-
 "use client";
+
+type PortalStatus =
+  | "pending"
+  | "in_review"
+  | "favorable"
+  | "not_favorable";
 
 export default function PortalLayout({
   title,
@@ -7,7 +12,7 @@ export default function PortalLayout({
   children,
 }: {
   title: string;
-  statusLabel: string;
+  statusLabel: PortalStatus;
   children: React.ReactNode;
 }) {
   return (
@@ -17,7 +22,9 @@ export default function PortalLayout({
           <h1 className="text-3xl font-semibold">{title}</h1>
           <p className="text-sm text-gray-600">
             Estado actual:{" "}
-            <span className="font-medium">{statusLabel}</span>
+            <span className="font-medium">
+              {statusLabel}
+            </span>
           </p>
         </header>
 

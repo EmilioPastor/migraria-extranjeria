@@ -3,13 +3,10 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const tramite = searchParams.get("tramite");
+  const tramiteKey = searchParams.get("tramite_key");
 
-  if (!tramite) {
-    return NextResponse.json(
-      { error: "Trámite requerido" },
-      { status: 400 }
-    );
+  if (!tramiteKey) {
+    return NextResponse.json([]);
   }
 
   const supabase = supabaseAdmin();
@@ -17,14 +14,11 @@ export async function GET(req: Request) {
   const { data, error } = await supabase
     .from("tramite_required_documents")
     .select("document_type")
-    .eq("tramite", tramite);
+    .eq("tramite", tramiteKey);
 
   if (error) {
-    console.error("Error cargando documentos requeridos:", error);
-    return NextResponse.json(
-      { error: "Error cargando documentos" },
-      { status: 500 }
-    );
+    console.error("REQUIRED DOCS ERROR:", error);
+    return NextResponse.json([]);
   }
 
   return NextResponse.json(data ?? []);

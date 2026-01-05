@@ -5,128 +5,82 @@ import { useParams } from "next/navigation";
 
 import PortalLayout from "@/components/portal/PortalLayout";
 import CaseSteps from "@/components/portal/CaseSteps";
-import CaseStatus from "@/components/portal/CaseStatus";
 import DocumentUpload from "@/components/portal/DocumentUpload";
-
-/* ===============================
-   TIPOS
-   =============================== */
-
-export type CaseStatusType =
-  | "pending"
-  | "in_review"
-  | "favorable"
-  | "not_favorable";
+import NextSteps from "@/components/portal/NextSteps";
+import PortalCTA from "@/components/portal/PortalCTA";
+import CaseStatus from "@/components/portal/CaseStatus";
 
 type CaseData = {
   id: string;
-  tramite: string;        // Nombre visible
-  tramite_key: string;    // Clave lógica (CRÍTICA)
-  status: CaseStatusType;
+  tramite: string;
+  tramite_key: string;
+  status: "pending" | "in_review" | "favorable" | "not_favorable";
   message?: string | null;
 };
 
-type ApiError = {
-  error: string;
-};
-
-/* ===============================
-   COMPONENTE
-   =============================== */
-
 export default function PortalPage() {
-  const params = useParams<{ token: string }>();
-  const token = params?.token;
-
+  const { token } = useParams<{ token: string }>();
   const [caseData, setCaseData] = useState<CaseData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  /* ===============================
-     CARGA DEL CASO POR TOKEN
-     =============================== */
   useEffect(() => {
-    if (!token) {
-      setError("Token no proporcionado");
-      setLoading(false);
-      return;
-    }
+    console.log("🌐 FETCHING PORTAL CASE", token);
 
-    const loadCase = async () => {
-      try {
-        const res = await fetch(`/api/portal/case?token=${token}`);
+    if (!token) return;
 
-        if (!res.ok) {
-          const err = (await res.json()) as ApiError;
-          throw new Error(err?.error || "Acceso no válido");
+    fetch(`/api/portal/case?token=${token}`, { cache: "no-store" })
+      .then(async (r) => {
+        const json = await r.json();
+
+        // 🔥 NORMALIZACIÓN DEFENSIVA (LA CLAVE)
+        const data = json?.case ?? json;
+
+        if (!r.ok || !data?.id) {
+          throw new Error(json?.error || "Error cargando caso");
         }
 
-        const data = (await res.json()) as CaseData;
-        setCaseData(data);
-        setError(null);
-      } catch (err) {
-        setCaseData(null);
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Error inesperado"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCase();
+        return data as CaseData;
+      })
+      .then(setCaseData)
+      .catch((e) => {
+        console.error("PORTAL ERROR:", e);
+        setError(e.message);
+      });
   }, [token]);
 
-  /* ===============================
-     ESTADOS DE CARGA / ERROR
-     =============================== */
-
-  if (loading) {
+  if (error) {
     return (
-      <div className="py-24 text-center text-gray-500">
-        Cargando información del caso…
+      <div className="p-20 text-center text-red-600">
+        {error}
       </div>
     );
   }
 
-  if (error || !caseData) {
+  if (!caseData) {
     return (
-      <div className="py-24 text-center text-red-600">
-        Enlace no válido, expirado o ya utilizado.
+      <div className="p-20 text-center text-gray-500">
+        Cargando expediente…
       </div>
     );
   }
 
-  /* ===============================
-     LÓGICA DE PASOS
-     =============================== */
-
-  const step: 1 | 2 | 3 =
+  const step =
     caseData.status === "pending"
       ? 1
       : caseData.status === "in_review"
-      ? 2
-      : 3;
-
-  /* ===============================
-     RENDER
-     =============================== */
+        ? 2
+        : 3;
 
   return (
     <PortalLayout
       title="Área privada del cliente"
       statusLabel={caseData.status}
     >
-      {/* PROGRESO */}
       <CaseSteps step={step} />
 
-      {/* ESTADO ACTUAL */}
       <CaseStatus status={caseData.status} />
 
-      {/* SUBIDA DE DOCUMENTOS */}
-      {caseData.status === "pending" && (
+      {caseData.status === "pending" && caseData.tramite_key && (
         <DocumentUpload
           caseId={caseData.id}
           token={token}
@@ -134,12 +88,19 @@ export default function PortalPage() {
         />
       )}
 
-      {/* MENSAJE FINAL DEL ABOGADO */}
       {caseData.message && (
-        <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-5 text-gray-700">
-          {caseData.message}
+        <div className="mt-6 text-sm text-gray-700">
+          <strong>Mensaje del equipo legal:</strong>
+          <p className="mt-1">{caseData.message}</p>
         </div>
       )}
+
+      <NextSteps status={caseData.status} />
+
+      {(caseData.status === "favorable" ||
+        caseData.status === "not_favorable") && (
+          <PortalCTA status={caseData.status} />
+        )}
     </PortalLayout>
   );
 }

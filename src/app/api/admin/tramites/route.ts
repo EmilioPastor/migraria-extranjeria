@@ -7,12 +7,13 @@ export async function GET() {
   const { data, error } = await supabase
     .from("tramites")
     .select("id, label, key, description, active")
-    .eq("active", true)
-    .order("label");
+    .order("label", { ascending: true });
 
   if (error) {
-    console.error(error);
-    return NextResponse.json([], { status: 500 });
+    return NextResponse.json(
+      { error: "Error cargando trámites" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json(data ?? []);

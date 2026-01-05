@@ -1,84 +1,87 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import {
-  sendClientInReviewEmail,
-  sendAdminCaseReadyEmail,
-} from "@/lib/email";
 
-/**
- * POST /api/portal/upload-file
- * Subida REAL de archivos para un caso.
- *
- * Flujo:
- * 1) Valida caso y estado
- * 2) Sube archivo a Supabase Storage (privado)
- * 3) Guarda metadatos en case_documents
- * 4) Log de subida
- * 5) Comprueba documentos obligatorios (BD)
- * 6) Cambia a in_review si procede
- * 7) Logs + notificación + emails
- */
 export async function POST(req: Request) {
   try {
-    /* ===============================
-       LEER FORMDATA
-       =============================== */
+    const supabase = supabaseAdmin();
     const formData = await req.formData();
 
-    const file = formData.get("file") as File | null;
+    const token = formData.get("token") as string | null;
     const caseId = formData.get("caseId") as string | null;
     const documentType = formData.get("documentType") as string | null;
+    const file = formData.get("file") as File | null;
 
-    if (!file || !caseId || !documentType) {
+    if (!token || !caseId || !documentType || !file) {
       return NextResponse.json(
         { error: "Datos incompletos" },
         { status: 400 }
       );
     }
 
-    const supabase = supabaseAdmin();
-
     /* ===============================
-       1️⃣ VALIDAR CASO
+       1️⃣ VALIDAR TOKEN
        =============================== */
-    const { data: caseData, error: caseError } = await supabase
-      .from("cases")
-      .select("id, status, tramite_key, client_email")
-      .eq("id", caseId)
-      .single();
+    const { data: tokenRow } = await supabase
+      .from("access_tokens")
+      .select("case_id, expires_at, used")
+      .eq("token", token)
+      .maybeSingle();
 
-    if (caseError || !caseData) {
+    if (
+      !tokenRow ||
+      tokenRow.used ||
+      (tokenRow.expires_at &&
+        new Date(tokenRow.expires_at) < new Date())
+    ) {
       return NextResponse.json(
-        { error: "Caso no encontrado" },
-        { status: 404 }
+        { error: "Token inválido o expirado" },
+        { status: 401 }
       );
     }
 
-    if (caseData.status !== "pending") {
+    if (tokenRow.case_id !== caseId) {
       return NextResponse.json(
-        { error: "El caso no admite más documentos" },
+        { error: "Token no válido para este caso" },
         { status: 403 }
       );
     }
 
     /* ===============================
-       2️⃣ SUBIR A STORAGE (PRIVADO)
+       2️⃣ NORMALIZAR NOMBRE
        =============================== */
-    const ext = file.name.split(".").pop();
-    const filePath = `${caseId}/${documentType}.${ext}`;
+    const safeFileName = file.name
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9._-]/g, "_");
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const timestamp = Date.now();
+    const filePath = `${caseId}/${timestamp}-${safeFileName}`;
 
-    const { error: storageError } = await supabase
-      .storage
+    /* ===============================
+       3️⃣ MIME TYPE
+       =============================== */
+    const mimeType =
+      file.type ||
+      (safeFileName.endsWith(".pdf") && "application/pdf") ||
+      (safeFileName.endsWith(".jpg") && "image/jpeg") ||
+      (safeFileName.endsWith(".jpeg") && "image/jpeg") ||
+      (safeFileName.endsWith(".png") && "image/png") ||
+      (safeFileName.endsWith(".docx") &&
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
+      "application/octet-stream";
+
+    /* ===============================
+       4️⃣ SUBIR A STORAGE
+       =============================== */
+    const { error: uploadError } = await supabase.storage
       .from("case-documents")
-      .upload(filePath, buffer, {
-        contentType: file.type,
-        upsert: true,
+      .upload(filePath, file, {
+        upsert: false,
+        contentType: mimeType,
       });
 
-    if (storageError) {
-      console.error("STORAGE ERROR:", storageError);
+    if (uploadError) {
       return NextResponse.json(
         { error: "Error subiendo archivo" },
         { status: 500 }
@@ -86,107 +89,48 @@ export async function POST(req: Request) {
     }
 
     /* ===============================
-       3️⃣ GUARDAR METADATOS EN BD
+       5️⃣ GUARDAR DOCUMENTO
        =============================== */
-    const { error: docError } = await supabase
+    const { error: dbError } = await supabase
       .from("case_documents")
-      .upsert(
-        {
-          case_id: caseId,
-          document_type: documentType,
-          file_path: filePath,
-          file_name: file.name,
-          mime_type: file.type,
-        },
-        { onConflict: "case_id,document_type" }
-      );
+      .insert({
+        case_id: caseId,
+        document_type: documentType,
+        file_path: filePath,
+        file_name: safeFileName,
+        mime_type: mimeType,
+      });
 
-    if (docError) {
-      console.error("DOC METADATA ERROR:", docError);
+    if (dbError) {
       return NextResponse.json(
-        { error: "Error guardando metadatos" },
+        { error: "Error guardando documento" },
         { status: 500 }
       );
     }
 
     /* ===============================
-       4️⃣ LOG: DOCUMENTO SUBIDO
+       6️⃣ EVENTO HISTORIAL
        =============================== */
-    await supabase.from("admin_actions").insert({
-      admin_email: "system",
-      action: "DOCUMENT_FILE_UPLOADED",
-      target: caseId,
-      meta: {
-        document: documentType,
-        file: file.name,
-      },
-    });
-
-    /* ===============================
-       5️⃣ COMPROBAR DOCUMENTOS OBLIGATORIOS
-       =============================== */
-    const { data: requiredDocs } = await supabase
-      .from("tramite_required_documents")
-      .select("document_type")
-      .eq("tramite", caseData.tramite_key);
-
-    const required =
-      requiredDocs?.map((d) => d.document_type) ?? [];
-
-    const { data: uploadedDocs } = await supabase
-      .from("case_documents")
-      .select("document_type")
-      .eq("case_id", caseId);
-
-    const uploaded =
-      uploadedDocs?.map((d) => d.document_type) ?? [];
-
-    const allRequiredUploaded =
-      required.length === 0 ||
-      required.every((doc) => uploaded.includes(doc));
-
-    /* ===============================
-       6️⃣ CAMBIO AUTOMÁTICO A in_review
-       =============================== */
-    if (allRequiredUploaded) {
-      await supabase
-        .from("cases")
-        .update({ status: "in_review" })
-        .eq("id", caseId);
-
-      /* LOG */
-      await supabase.from("admin_actions").insert({
-        admin_email: "system",
-        action: "CASE_AUTO_IN_REVIEW",
-        target: caseId,
-        meta: {
-          required_documents: required,
-          uploaded_documents: uploaded,
-        },
-      });
-
-      /* NOTIFICACIÓN ADMIN */
-      await supabase.from("admin_notifications").insert({
-        type: "case_ready_for_review",
-        title: "Caso listo para revisión",
-        message:
-          "Un cliente ha subido toda la documentación obligatoria.",
+    const { error: eventError } = await supabase
+      .from("case_events")
+      .insert({
         case_id: caseId,
+        type: "DOCUMENT_UPLOADED",
+        description: `Documento subido: ${documentType}`,
       });
 
-      /* EMAILS */
-      if (caseData.client_email) {
-        await sendClientInReviewEmail(caseData.client_email);
-      }
-
-      await sendAdminCaseReadyEmail(caseId);
+    if (eventError) {
+      return NextResponse.json(
+        { error: "Error registrando evento" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("UPLOAD-FILE ERROR:", err);
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    console.error("UPLOAD ERROR:", e);
     return NextResponse.json(
-      { error: "Error interno" },
+      { error: "Error inesperado" },
       { status: 500 }
     );
   }

@@ -9,11 +9,18 @@ export async function GET(
   const supabase = supabaseAdmin();
   const documentId = params.id;
 
+  if (!documentId) {
+    return NextResponse.json(
+      { error: "ID requerido" },
+      { status: 400 }
+    );
+  }
+
   const { data: doc, error } = await supabase
-    .from("documents")
-    .select("file_path")
+    .from("case_documents")
+    .select("file_path, file_name, mime_type")
     .eq("id", documentId)
-    .single();
+    .maybeSingle();
 
   if (error || !doc) {
     return NextResponse.json(
@@ -44,9 +51,12 @@ export async function GET(
   const headers = new Headers();
   headers.set(
     "Content-Disposition",
-    `attachment; filename="${doc.file_path.split("/").pop()}"`
+    `attachment; filename="${doc.file_name ?? "documento"}"`
   );
-  headers.set("Content-Type", fileData.type);
+  headers.set(
+    "Content-Type",
+    doc.mime_type ?? "application/octet-stream"
+  );
 
   return new NextResponse(fileData.stream(), { headers });
 }

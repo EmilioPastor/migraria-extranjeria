@@ -3,20 +3,24 @@
 import { useEffect, useState } from "react";
 
 type RequiredDocument = {
-  id: string;
   document_type: string;
 };
 
 type UploadedDocument = {
-  id: string;
   document_type: string;
 };
 
 type Props = {
   caseId: string;
   token: string;
-  tramite: string; // 👈 AQUÍ VA tramite_key (ej: arraigo_social)
+  tramite: string; // tramite_key
 };
+
+/* ===============================
+   HELPERS
+   =============================== */
+const normalize = (s: string) =>
+  s.toLowerCase().replace(/\s+/g, "_");
 
 export default function DocumentUpload({
   caseId,
@@ -30,28 +34,36 @@ export default function DocumentUpload({
   const [uploading, setUploading] = useState<string | null>(null);
 
   /* =====================================================
-     1️⃣ CARGAR DOCUMENTOS REQUERIDOS + SUBIDOS
+     1️⃣ CARGAR DOCUMENTOS
      ===================================================== */
   useEffect(() => {
+    // 🔴 FIX CLAVE: si no hay tramite, salimos de loading
+    if (!tramite) {
+      setLoading(false);
+      return;
+    }
+
     const load = async () => {
       try {
         setError(null);
+        setLoading(true);
 
-        // 🔹 Documentos requeridos según trámite
+        console.log("TRAMITE RECIBIDO 👉", tramite);
+
         const reqRes = await fetch(
-          `/api/portal/required-documents?tramite=${tramite}`
+          `/api/portal/required-documents?tramite_key=${tramite}`
         );
-        const reqData = await reqRes.json();
+        const reqJson = await reqRes.json();
 
-        // 🔹 Documentos ya subidos
         const upRes = await fetch(
           `/api/portal/uploaded-documents?caseId=${caseId}`
         );
-        const upData = await upRes.json();
+        const upJson = await upRes.json();
 
-        setRequiredDocs(reqData);
-        setUploadedDocs(upData);
+        setRequiredDocs(Array.isArray(reqJson) ? reqJson : []);
+        setUploadedDocs(Array.isArray(upJson) ? upJson : []);
       } catch (e) {
+        console.error(e);
         setError("Error cargando documentación");
       } finally {
         setLoading(false);
@@ -74,11 +86,12 @@ export default function DocumentUpload({
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("caseId", caseId);
       formData.append("token", token);
-      formData.append("documentType", documentType);
+      formData.append("caseId", caseId); // 🔑 CLAVE
+      formData.append("documentType", normalize(documentType));
 
-      const res = await fetch("/api/portal/upload", {
+
+      const res = await fetch("/api/portal/upload-file", {
         method: "POST",
         body: formData,
       });
@@ -89,12 +102,12 @@ export default function DocumentUpload({
         throw new Error(data?.error || "Error subiendo archivo");
       }
 
-      // 🔹 Refrescar documentos subidos
+      // 🔄 refrescar subidos
       const upRes = await fetch(
         `/api/portal/uploaded-documents?caseId=${caseId}`
       );
-      const upData = await upRes.json();
-      setUploadedDocs(upData);
+      const upJson = await upRes.json();
+      setUploadedDocs(Array.isArray(upJson) ? upJson : []);
     } catch (err) {
       setError(
         err instanceof Error
@@ -135,17 +148,22 @@ export default function DocumentUpload({
       )}
 
       {requiredDocs.map((doc) => {
+        const requiredKey = normalize(doc.document_type);
+
         const uploaded = uploadedDocs.some(
-          (u) => u.document_type === doc.document_type
+          (u) =>
+            normalize(u.document_type) === requiredKey
         );
 
         return (
           <div
-            key={doc.id}
+            key={requiredKey}
             className="flex items-center justify-between border rounded-lg p-4"
           >
             <div>
-              <p className="font-medium">{doc.document_type}</p>
+              <p className="font-medium">
+                {doc.document_type}
+              </p>
               <p className="text-sm text-gray-500">
                 Obligatorio
               </p>
@@ -160,6 +178,7 @@ export default function DocumentUpload({
                 <input
                   type="file"
                   className="hidden"
+                  disabled={uploading !== null}
                   onChange={(e) => {
                     if (e.target.files?.[0]) {
                       handleUpload(
@@ -168,7 +187,6 @@ export default function DocumentUpload({
                       );
                     }
                   }}
-                  disabled={uploading !== null}
                 />
                 <span className="px-4 py-2 border rounded hover:bg-gray-50 text-sm">
                   {uploading === doc.document_type

@@ -1,11 +1,11 @@
-type Status =
+type PortalStatus =
   | "pending"
   | "in_review"
   | "favorable"
   | "not_favorable";
 
 const STATUS_MAP: Record<
-  Status,
+  PortalStatus,
   { title: string; color: string; description: string }
 > = {
   pending: {
@@ -33,22 +33,18 @@ const STATUS_MAP: Record<
 export default function CaseStatus({
   status,
 }: {
-  status: Status;
+  status: PortalStatus;
 }) {
   const s = STATUS_MAP[status];
 
-  if (!s) {
-    return (
-      <div className="border rounded-lg p-6 border-gray-200 bg-gray-50">
-        Estado desconocido
-      </div>
-    );
-  }
-
   return (
     <div className={`border rounded-lg p-6 ${s.color}`}>
-      <h2 className="text-lg font-semibold mb-2">{s.title}</h2>
-      <p className="text-sm text-gray-700">{s.description}</p>
+      <h2 className="text-lg font-semibold mb-2">
+        {s.title}
+      </h2>
+      <p className="text-sm text-gray-700">
+        {s.description}
+      </p>
     </div>
   );
 }
