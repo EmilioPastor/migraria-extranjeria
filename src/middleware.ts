@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -11,17 +12,22 @@ export async function middleware(req: NextRequest) {
   }
 
   const res = NextResponse.next();
+  const cookieStore = cookies();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (key) => req.cookies.get(key)?.value,
-        set: (key, value, options) =>
-          res.cookies.set({ name: key, value, ...options }),
-        remove: (key, options) =>
-          res.cookies.set({ name: key, value: "", ...options }),
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options) {
+          cookieStore.set({ name, value, ...options });
+        },
+        remove(name: string, options) {
+          cookieStore.set({ name, value: "", ...options });
+        },
       },
     }
   );
