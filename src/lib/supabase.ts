@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { createBrowserClient } from '@supabase/ssr'; // OPCIONAL: para mejor integración
+// import { createBrowserClient } from '@supabase/ssr'; // OPCIONAL: para mejor integración
 
 // Opción A: Cliente estándar (si funciona tu app actual)
 export const supabase = createClient(

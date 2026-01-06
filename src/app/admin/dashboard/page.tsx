@@ -40,7 +40,7 @@ export default async function AdminDashboardPage() {
     { count: notFavorable },
     { data: priorityCasesRaw },
     { data: notifications },
-    { data: activity },
+    // { data: activity },
     { count: totalClients },
     { count: totalDocuments }
   ] = await Promise.all([
