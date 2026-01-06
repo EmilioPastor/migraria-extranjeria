@@ -1,7 +1,8 @@
+// app/layout.tsx
 import "@/styles/globals.css";
 import type { Metadata } from "next";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import ConditionalNavbar from "@/components/layout/ConditionalNavbar";
+import ConditionalFooter from "@/components/layout/ConditionalFooter"; // Opcional
 
 export const metadata: Metadata = {
   title: "Migraria Extranjería",
@@ -20,9 +21,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="antialiased">
-        <Navbar />
+        <ConditionalNavbar />
         <main className="min-h-screen">{children}</main>
-        <Footer />
+        <ConditionalFooter /> {/* O dejar solo Footer si no quieres condicional */}
       </body>
     </html>
   );
