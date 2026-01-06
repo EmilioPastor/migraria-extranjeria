@@ -16,24 +16,22 @@ type DocumentRow = {
   uploaded_at: string;
   created_at: string;
   case_id: string;
-  cases?: {
+  case_data?: {
     tramite: string;
     client_id: string;
-    clients?: {
-      email: string | null;
-      name: string | null;
-    } | null;
+    client_email?: string | null;
+    client_name?: string | null;
   } | null;
 };
 
 /* ======================================================
-   PAGE
+   PAGE - CORREGIDO
    ====================================================== */
 
 export default async function AdminDocumentsPage() {
   const supabase = supabaseAdmin();
 
-  // 1. Obtener documentos con información del caso y cliente
+  // 1. Obtener documentos (SOLO datos de documentos primero)
   const { data: documentsRaw, error: documentsError } = await supabase
     .from("case_documents")
     .select(`
@@ -44,15 +42,7 @@ export default async function AdminDocumentsPage() {
       mime_type,
       uploaded_at,
       created_at,
-      case_id,
-      cases (
-        tramite,
-        client_id,
-        clients (
-          email,
-          name
-        )
-      )
+      case_id
     `)
     .order("uploaded_at", { ascending: false });
 
@@ -60,21 +50,75 @@ export default async function AdminDocumentsPage() {
     console.error("Error cargando documentos:", documentsError);
   }
 
-  const documents: DocumentRow[] = (documentsRaw || []).map(doc => ({
-    ...doc,
-    cases: doc.cases ? {
-      tramite: doc.cases.tramite,
-      client_id: doc.cases.client_id,
-      clients: doc.cases.clients ? {
-        email: doc.cases.clients.email,
-        name: doc.cases.clients.name
-      } : null
-    } : null
-  }));
+  const documents = documentsRaw || [];
 
-  // 2. Estadísticas
-  const total = documents.length;
-  const types = Array.from(new Set(documents.map(d => d.document_type)));
+  // 2. Obtener información de los casos relacionados
+  const caseIds = Array.from(
+    new Set(documents.map(d => d.case_id).filter(Boolean))
+  );
+
+  const casesMap = new Map<string, {
+    tramite: string;
+    client_id: string;
+  }>();
+
+  if (caseIds.length > 0) {
+    const { data: casesData } = await supabase
+      .from("cases")
+      .select("id, tramite, client_id")
+      .in("id", caseIds);
+
+    casesData?.forEach(c => {
+      casesMap.set(c.id, {
+        tramite: c.tramite,
+        client_id: c.client_id
+      });
+    });
+  }
+
+  // 3. Obtener información de clientes
+  const clientIds = Array.from(
+    new Set(Array.from(casesMap.values()).map(c => c.client_id).filter(Boolean))
+  );
+
+  const clientsMap = new Map<string, {
+    email: string | null;
+    name: string | null;
+  }>();
+
+  if (clientIds.length > 0) {
+    const { data: clientsData } = await supabase
+      .from("clients")
+      .select("id, email, name")
+      .in("id", clientIds);
+
+    clientsData?.forEach(c => {
+      clientsMap.set(c.id, {
+        email: c.email,
+        name: c.name
+      });
+    });
+  }
+
+  // 4. Combinar toda la información
+  const documentsWithDetails: DocumentRow[] = documents.map(doc => {
+    const caseInfo = doc.case_id ? casesMap.get(doc.case_id) : undefined;
+    const clientInfo = caseInfo?.client_id ? clientsMap.get(caseInfo.client_id) : undefined;
+
+    return {
+      ...doc,
+      case_data: caseInfo ? {
+        tramite: caseInfo.tramite,
+        client_id: caseInfo.client_id,
+        client_email: clientInfo?.email || null,
+        client_name: clientInfo?.name || null
+      } : null
+    };
+  });
+
+  // 5. Estadísticas
+  const total = documentsWithDetails.length;
+  const types = Array.from(new Set(documentsWithDetails.map(d => d.document_type)));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/20">
@@ -137,7 +181,7 @@ export default async function AdminDocumentsPage() {
                 color="emerald" 
               />
               <StatBadge 
-                value={documents.filter(d => d.mime_type === 'application/pdf').length}
+                value={documentsWithDetails.filter(d => d.mime_type === 'application/pdf').length}
                 label="PDFs" 
                 color="red" 
               />
@@ -228,7 +272,7 @@ export default async function AdminDocumentsPage() {
               </thead>
               
               <tbody className="divide-y divide-gray-100">
-                {documents.length === 0 ? (
+                {documentsWithDetails.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center justify-center">
@@ -251,14 +295,14 @@ export default async function AdminDocumentsPage() {
                     </td>
                   </tr>
                 ) : (
-                  documents.map((doc) => (
+                  documentsWithDetails.map((doc) => (
                     <tr key={doc.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                             doc.mime_type === 'application/pdf' 
                               ? 'bg-red-100 text-red-600' 
-                              : doc.mime_type.includes('image') 
+                              : doc.mime_type?.includes('image') 
                               ? 'bg-green-100 text-green-600' 
                               : 'bg-blue-100 text-blue-600'
                           }`}>
@@ -266,7 +310,7 @@ export default async function AdminDocumentsPage() {
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                               </svg>
-                            ) : doc.mime_type.includes('image') ? (
+                            ) : doc.mime_type?.includes('image') ? (
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
@@ -281,7 +325,7 @@ export default async function AdminDocumentsPage() {
                               {doc.file_name}
                             </p>
                             <p className="text-sm text-gray-500">
-                              {doc.mime_type}
+                              {doc.mime_type || 'Sin tipo'}
                             </p>
                           </div>
                         </div>
@@ -294,12 +338,12 @@ export default async function AdminDocumentsPage() {
                       </td>
                       
                       <td className="px-6 py-4">
-                        {doc.cases ? (
+                        {doc.case_data ? (
                           <Link
                             href={`/admin/case/${doc.case_id}`}
                             className="text-blue-600 hover:text-blue-800 font-medium"
                           >
-                            {doc.cases.tramite}
+                            {doc.case_data.tramite}
                           </Link>
                         ) : (
                           <span className="text-gray-500">Caso no encontrado</span>
@@ -307,13 +351,13 @@ export default async function AdminDocumentsPage() {
                       </td>
                       
                       <td className="px-6 py-4">
-                        {doc.cases?.clients ? (
+                        {doc.case_data?.client_email ? (
                           <div>
                             <p className="font-medium text-gray-900">
-                              {doc.cases.clients.name || doc.cases.clients.email?.split('@')[0] || 'Cliente'}
+                              {doc.case_data.client_name || doc.case_data.client_email?.split('@')[0] || 'Cliente'}
                             </p>
                             <p className="text-sm text-gray-500">
-                              {doc.cases.clients.email}
+                              {doc.case_data.client_email}
                             </p>
                           </div>
                         ) : (
@@ -332,28 +376,32 @@ export default async function AdminDocumentsPage() {
                       
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <a
-                            href={doc.file_path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Ver documento"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          </a>
-                          
-                          <button
-                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                            title="Descargar"
-                            onClick={() => window.open(doc.file_path, '_blank')}
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                          </button>
+                          {doc.file_path && (
+                            <>
+                              <a
+                                href={doc.file_path}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Ver documento"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </a>
+                              
+                              <button
+                                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                title="Descargar"
+                                onClick={() => window.open(doc.file_path || '#', '_blank')}
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                              </button>
+                            </>
+                          )}
                           
                           <button
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -378,11 +426,11 @@ export default async function AdminDocumentsPage() {
           </div>
           
           {/* Paginación */}
-          {documents.length > 0 && (
+          {documentsWithDetails.length > 0 && (
             <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-500">
-                  Mostrando {documents.length} de {total} documentos
+                  Mostrando {documentsWithDetails.length} de {total} documentos
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -397,7 +445,7 @@ export default async function AdminDocumentsPage() {
                   </span>
                   <button
                     className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={documents.length < 20}
+                    disabled={documentsWithDetails.length < 20}
                   >
                     Siguiente
                   </button>
