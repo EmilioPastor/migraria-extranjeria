@@ -7,10 +7,10 @@ import {
   ArrowDownTrayIcon,
   DocumentArrowDownIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
+  // FunnelIcon,
   EyeIcon,
   CalendarDaysIcon,
-  UserCircleIcon
+  // UserCircleIcon
 } from "@heroicons/react/24/outline";
 import { adminApi, downloadBlob } from "@/lib/api/admin";
 

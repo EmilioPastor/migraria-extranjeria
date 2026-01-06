@@ -7,16 +7,16 @@ export default function ExportButtons() {
   const [exportLoading, setExportLoading] = useState<null | 'csv' | 'json'>(null);
 
   // Función para descargar el blob
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  };
+  // const downloadBlob = (blob: Blob, filename: string) => {
+  //   const url = window.URL.createObjectURL(blob);
+  //   const a = document.createElement('a');
+  //   a.href = url;
+  //   a.download = filename;
+  //   document.body.appendChild(a);
+  //   a.click();
+  //   document.body.removeChild(a);
+  //   window.URL.revokeObjectURL(url);
+  // };
 
   const handleExport = async (format: 'csv' | 'json') => {
     try {

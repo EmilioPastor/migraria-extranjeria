@@ -8,15 +8,15 @@ import {
   DocumentCheckIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  XCircleIcon,
+  // XCircleIcon,
   UserGroupIcon,
   BellAlertIcon,
   ArrowTrendingUpIcon,
-  CalendarDaysIcon,
+  // CalendarDaysIcon,
   DocumentMagnifyingGlassIcon,
   DocumentTextIcon,
-  UsersIcon,
-  FlagIcon,
+  // UsersIcon,
+  // FlagIcon,
   ScaleIcon
 } from "@heroicons/react/24/outline";
 
