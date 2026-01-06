@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'; // Removido NextRequest
 
 // Definir tipos para los documentos
 type DocumentWithCase = {
@@ -36,7 +36,7 @@ type ProcessedDocument = {
   };
 };
 
-export async function GET() { // Removido 'request' si no lo usas
+export async function GET() {
   try {
     const supabase = supabaseAdmin();
 
