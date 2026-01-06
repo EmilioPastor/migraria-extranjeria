@@ -388,7 +388,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Actividad Reciente */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            {/* <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-200">
                 <h2 className="font-semibold text-gray-800">
                   Actividad Reciente
@@ -433,7 +433,7 @@ export default async function AdminDashboardPage() {
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
 
             {/* Acciones Rápidas */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-5 text-white">

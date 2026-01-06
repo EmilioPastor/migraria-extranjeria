@@ -1,12 +1,17 @@
+// middleware.ts - versión con debug
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  
+  console.log('🔍 Middleware triggered for:', pathname);
+  console.log('🕐 Time:', new Date().toISOString());
 
   // 🔓 Login público
   if (pathname === "/admin/login") {
+    console.log('✅ Public route, allowing access');
     return NextResponse.next();
   }
 
@@ -18,9 +23,12 @@ export async function middleware(req: NextRequest) {
     {
       cookies: {
         get(name: string) {
-          return req.cookies.get(name)?.value;
+          const cookie = req.cookies.get(name)?.value;
+          console.log(`🍪 Cookie ${name}:`, cookie ? 'Present' : 'Missing');
+          return cookie;
         },
         set(name: string, value: string, options) {
+          console.log(`🍪 Setting cookie ${name}`);
           res.cookies.set({
             name,
             value,
@@ -28,6 +36,7 @@ export async function middleware(req: NextRequest) {
           });
         },
         remove(name: string, options) {
+          console.log(`🍪 Removing cookie ${name}`);
           res.cookies.set({
             name,
             value: "",
@@ -40,14 +49,19 @@ export async function middleware(req: NextRequest) {
 
   const {
     data: { session },
+    error,
   } = await supabase.auth.getSession();
 
+  console.log('👤 Session exists?', !!session);
+  console.log('❌ Error?', error);
+  console.log('🔑 User ID:', session?.user?.id);
+
   if (pathname.startsWith("/admin") && !session) {
-    return NextResponse.redirect(
-      new URL("/admin/login", req.url)
-    );
+    console.log('🚫 No session, redirecting to login');
+    return NextResponse.redirect(new URL("/admin/login", req.url));
   }
 
+  console.log('✅ Access granted to', pathname);
   return res;
 }
 
