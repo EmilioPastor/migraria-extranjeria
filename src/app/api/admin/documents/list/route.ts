@@ -1,7 +1,42 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+// Definir tipos para los documentos
+type DocumentWithCase = {
+  id: string;
+  file_name: string;
+  document_type: string;
+  uploaded_at: string;
+  mime_type: string;
+  file_path: string;
+  case_id: string;
+  cases: Array<{
+    tramite: string;
+    client_id: string;
+  }> | null;
+};
+
+type Client = {
+  id: string;
+  email: string;
+};
+
+type ProcessedDocument = {
+  id: string;
+  file_name: string;
+  document_type: string;
+  uploaded_at: string;
+  mime_type: string;
+  file_path: string;
+  case_id: string;
+  case: {
+    tramite: string;
+    client_email: string | undefined;
+    created_at: string;
+  };
+};
+
+export async function GET() { // Removido 'request' si no lo usas
   try {
     const supabase = supabaseAdmin();
 
@@ -27,12 +62,15 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
+    // Cast a nuestro tipo definido
+    const typedDocuments = (documents || []) as DocumentWithCase[];
+
     // Obtener emails de clientes
     const clientIds = Array.from(
       new Set(
-        (documents || [])
-          .flatMap((doc: any) => 
-            (doc.cases || []).map((c: any) => c?.client_id).filter(Boolean)
+        typedDocuments
+          .flatMap(doc => 
+            (doc.cases || []).map(caseItem => caseItem?.client_id).filter(Boolean) as string[]
           )
       )
     );
@@ -45,14 +83,16 @@ export async function GET(request: NextRequest) {
         .select('id, email')
         .in('id', clientIds);
 
-      clients?.forEach((c: any) => {
-        clientsMap.set(c.id, c.email);
+      (clients || []).forEach((client: Client) => {
+        clientsMap.set(client.id, client.email);
       });
     }
 
     // Procesar documentos
-    const processedDocuments = (documents || []).map((doc: any) => {
-      const firstCase = Array.isArray(doc.cases) ? doc.cases[0] : doc.cases;
+    const processedDocuments: ProcessedDocument[] = typedDocuments.map(doc => {
+      const firstCase = Array.isArray(doc.cases) && doc.cases.length > 0 
+        ? doc.cases[0] 
+        : null;
       
       return {
         id: doc.id,

@@ -79,10 +79,15 @@ export async function PUT(
     }
 
     return NextResponse.json(updatedTramite);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al actualizar trámite:', error);
+    
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Error al actualizar trámite';
+    
     return NextResponse.json(
-      { error: error.message || 'Error al actualizar trámite' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -105,16 +110,29 @@ export async function DELETE(
 
     const supabase = supabaseAdmin();
 
+    // Obtener key del trámite primero
+    const { data: tramiteData, error: tramiteError } = await supabase
+      .from('tramites')
+      .select('key')
+      .eq('id', id)
+      .single();
+
+    if (tramiteError) {
+      throw tramiteError;
+    }
+
+    if (!tramiteData) {
+      return NextResponse.json(
+        { error: 'Trámite no encontrado' },
+        { status: 404 }
+      );
+    }
+
     // 1. Verificar si hay casos usando este trámite
     const { data: cases, error: casesError } = await supabase
       .from('cases')
       .select('id')
-      .eq('tramite_key', (await supabase
-        .from('tramites')
-        .select('key')
-        .eq('id', id)
-        .single()
-      ).data?.key)
+      .eq('tramite_key', tramiteData.key)
       .limit(1);
 
     if (casesError) {
@@ -128,20 +146,11 @@ export async function DELETE(
       );
     }
 
-    // 2. Obtener key para eliminar documentos requeridos
-    const { data: tramite } = await supabase
-      .from('tramites')
-      .select('key')
-      .eq('id', id)
-      .single();
-
-    if (tramite) {
-      // Eliminar documentos requeridos primero
-      await supabase
-        .from('tramite_required_documents')
-        .delete()
-        .eq('tramite', tramite.key);
-    }
+    // 2. Eliminar documentos requeridos primero
+    await supabase
+      .from('tramite_required_documents')
+      .delete()
+      .eq('tramite', tramiteData.key);
 
     // 3. Eliminar trámite
     const { error: deleteError } = await supabase
@@ -154,10 +163,15 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al eliminar trámite:', error);
+    
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Error al eliminar trámite';
+    
     return NextResponse.json(
-      { error: error.message || 'Error al eliminar trámite' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

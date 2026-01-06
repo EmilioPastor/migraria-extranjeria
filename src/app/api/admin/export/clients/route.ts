@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'; // Removido NextRequest
 import { createObjectCsvStringifier } from 'csv-writer';
 
 export async function GET() {

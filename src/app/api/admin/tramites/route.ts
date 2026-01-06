@@ -83,10 +83,15 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(tramite, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al crear trámite:', error);
+    
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Error al crear trámite';
+    
     return NextResponse.json(
-      { error: error.message || 'Error al crear trámite' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

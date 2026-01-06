@@ -1,3 +1,26 @@
+// src/lib/api/admin.ts
+
+// Definir tipos primero
+export interface CaseFilters {
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  tramite?: string;
+  [key: string]: string | undefined;
+}
+
+export interface TramiteData {
+  label: string;
+  key: string;
+  description?: string;
+  active?: boolean;
+  required_docs?: string[];
+}
+
+export interface UpdateTramiteData extends Partial<TramiteData> {
+  id: string;
+}
+
 // Helper para hacer requests a los endpoints admin
 export const adminApi = {
   // Documentos
@@ -13,7 +36,7 @@ export const adminApi = {
   },
 
   // Exportación
-  async exportCases(format: 'csv' | 'json' = 'csv', filters?: any) {
+  async exportCases(format: 'csv' | 'json' = 'csv', filters?: CaseFilters) {
     const params = new URLSearchParams({ format, ...filters });
     const response = await fetch(`/api/admin/export/cases?${params}`);
     if (!response.ok) throw new Error('Error al exportar casos');
@@ -54,7 +77,7 @@ export const adminApi = {
     return await response.json();
   },
 
-  async createTramite(data: any) {
+  async createTramite(data: TramiteData) {
     const response = await fetch('/api/admin/tramites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -63,7 +86,7 @@ export const adminApi = {
     return await response.json();
   },
 
-  async updateTramite(id: string, data: any) {
+  async updateTramite(id: string, data: UpdateTramiteData) {
     const response = await fetch(`/api/admin/tramites/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
