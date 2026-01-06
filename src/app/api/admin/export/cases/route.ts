@@ -1,10 +1,12 @@
+export const dynamic = 'force-dynamic'; // Desactiva Static Generation
+
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 import { createObjectCsvStringifier } from 'csv-writer';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const format = searchParams.get('format') || 'csv';
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
@@ -47,10 +49,10 @@ export async function GET(request: NextRequest) {
 
     // Transformar datos
     const exportData = cases?.map(c => {
-      const clientEmail = c.clients && c.clients.length > 0 
-        ? c.clients[0].email 
+      const clientEmail = c.clients && c.clients.length > 0
+        ? c.clients[0].email
         : 'N/A';
-      
+
       return {
         id: c.id,
         tramite: c.tramite,
@@ -59,10 +61,10 @@ export async function GET(request: NextRequest) {
         cliente_email: clientEmail,
         fecha_creacion: new Date(c.created_at).toLocaleString('es-ES'),
         fecha_actualizacion: new Date(c.updated_at).toLocaleString('es-ES'),
-        estado_formateado: 
+        estado_formateado:
           c.status === 'pending' ? 'Pendiente' :
-          c.status === 'in_review' ? 'En revisión' :
-          c.status === 'favorable' ? 'Favorable' : 'No favorable'
+            c.status === 'in_review' ? 'En revisión' :
+              c.status === 'favorable' ? 'Favorable' : 'No favorable'
       };
     }) || [];
 
