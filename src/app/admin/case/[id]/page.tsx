@@ -20,7 +20,7 @@ type CaseData = {
   tramite: string;
   status: CaseStatus;
   message: string | null;
-  clients?: {
+  client?: {
     email?: string | null;
     name?: string | null;
     phone?: string | null;
@@ -221,19 +221,19 @@ export default function AdminCaseDetailPage() {
                 <div>
                   <p className="text-sm text-gray-500">Nombre</p>
                   <p className="font-medium text-gray-900">
-                    {caseData.clients?.name || 'No especificado'}
+                    {caseData.client?.name || 'No especificado'}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Email</p>
                   <p className="font-medium text-gray-900">
-                    {caseData.clients?.email || 'No especificado'}
+                    {caseData.client?.email || 'No especificado'}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Teléfono</p>
                   <p className="font-medium text-gray-900">
-                    {caseData.clients?.phone || 'No especificado'}
+                    {caseData.client?.phone || 'No especificado'}
                   </p>
                 </div>
               </div>

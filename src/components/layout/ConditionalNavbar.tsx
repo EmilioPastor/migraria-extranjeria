@@ -9,9 +9,10 @@ export default function ConditionalNavbar() {
   
   // Verificar si estamos en una ruta de admin
   const isAdminRoute = pathname?.startsWith("/admin");
+  const isPortalRoute = pathname?.startsWith("/portal");
   
   // Si estamos en admin, no mostrar navbar
-  if (isAdminRoute) {
+  if (isAdminRoute || isPortalRoute) {
     return null;
   }
   

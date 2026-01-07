@@ -102,6 +102,7 @@ export default async function AdminCasesPage() {
                 ← Dashboard
               </Link>
               <LogoutButton />
+              
             </div>
           </div>
         </div>
