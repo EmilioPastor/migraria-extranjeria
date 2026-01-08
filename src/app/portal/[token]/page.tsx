@@ -88,6 +88,8 @@ export default function PortalPage() {
   useEffect(() => {
     if (!token) return;
 
+    let interval: NodeJS.Timeout;
+
     const loadCase = async () => {
       try {
         setLoading(true);
@@ -95,10 +97,6 @@ export default function PortalPage() {
 
         const response = await fetch(`/api/portal/case?token=${token}`, {
           cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            Pragma: "no-cache"
-          }
         });
 
         const json = await response.json();
@@ -108,22 +106,19 @@ export default function PortalPage() {
           throw new Error(json?.error || "Error cargando su expediente");
         }
 
-        const enhancedData = {
+        setCaseData({
           ...data,
-          case_number:
-            data.case_number || `MG-${data.id.slice(-8).toUpperCase()}`,
-          client_name: data.client_name || "Estimado cliente"
-        };
+          case_number: data.case_number || `MG-${data.id.slice(-8).toUpperCase()}`,
+          client_name: data.client_name || "Estimado cliente",
+        });
 
-        setCaseData(enhancedData);
         setLastUpdated(
           new Date().toLocaleTimeString("es-ES", {
             hour: "2-digit",
-            minute: "2-digit"
+            minute: "2-digit",
           })
         );
       } catch (e) {
-        console.error("PORTAL ERROR:", e);
         setError(e instanceof Error ? e.message : "Error de conexión");
       } finally {
         setLoading(false);
@@ -132,14 +127,11 @@ export default function PortalPage() {
 
     loadCase();
 
-    const interval = setInterval(() => {
-      if (token && !loading) {
-        loadCase();
-      }
-    }, 30000);
+    interval = setInterval(loadCase, 30000);
 
     return () => clearInterval(interval);
   }, [token]);
+
 
   /* ===============================
      TIMELINE
@@ -168,15 +160,15 @@ export default function PortalPage() {
           caseData.status !== "pending"
             ? "completed"
             : caseData.status === "pending"
-            ? "current"
-            : "pending"
+              ? "current"
+              : "pending"
       },
       {
         id: "3",
         date:
           caseData.status === "in_review" ||
-          caseData.status === "favorable" ||
-          caseData.status === "not_favorable"
+            caseData.status === "favorable" ||
+            caseData.status === "not_favorable"
             ? "En progreso"
             : "Pendiente",
         title: "Análisis Jurídico",
@@ -188,14 +180,14 @@ export default function PortalPage() {
             ? "current"
             : caseData.status === "favorable" ||
               caseData.status === "not_favorable"
-            ? "completed"
-            : "pending"
+              ? "completed"
+              : "pending"
       },
       {
         id: "4",
         date:
           caseData.status === "favorable" ||
-          caseData.status === "not_favorable"
+            caseData.status === "not_favorable"
             ? "Completado"
             : "Pendiente",
         title: "Resolución Final",
@@ -208,7 +200,7 @@ export default function PortalPage() {
           ),
         status:
           caseData.status === "favorable" ||
-          caseData.status === "not_favorable"
+            caseData.status === "not_favorable"
             ? "completed"
             : "pending"
       }
@@ -318,8 +310,8 @@ export default function PortalPage() {
     caseData.status === "pending"
       ? 1
       : caseData.status === "in_review"
-      ? 2
-      : 3;
+        ? 2
+        : 3;
 
   return (
     <PortalLayout
@@ -415,11 +407,10 @@ export default function PortalPage() {
         <nav className="flex space-x-2">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`px-5 py-3 rounded-lg text-sm font-medium transition-all ${
-              activeTab === "overview"
+            className={`px-5 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === "overview"
                 ? "bg-white text-blue-600 shadow-sm border border-blue-100"
                 : "text-gray-600 hover:text-blue-600 hover:bg-white/50"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <DocumentChartBarIcon className="h-5 w-5" />
@@ -429,11 +420,10 @@ export default function PortalPage() {
 
           <button
             onClick={() => setActiveTab("documents")}
-            className={`px-5 py-3 rounded-lg text-sm font-medium transition-all ${
-              activeTab === "documents"
+            className={`px-5 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === "documents"
                 ? "bg-white text-blue-600 shadow-sm border border-blue-100"
                 : "text-gray-600 hover:text-blue-600 hover:bg-white/50"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <FolderIcon className="h-5 w-5" />
@@ -443,11 +433,10 @@ export default function PortalPage() {
 
           <button
             onClick={() => setActiveTab("process")}
-            className={`px-5 py-3 rounded-lg text-sm font-medium transition-all ${
-              activeTab === "process"
+            className={`px-5 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === "process"
                 ? "bg-white text-blue-600 shadow-sm border border-blue-100"
                 : "text-gray-600 hover:text-blue-600 hover:bg-white/50"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <CalendarDaysIcon className="h-5 w-5" />
@@ -457,11 +446,10 @@ export default function PortalPage() {
 
           <button
             onClick={() => setActiveTab("contact")}
-            className={`px-5 py-3 rounded-lg text-sm font-medium transition-all ${
-              activeTab === "contact"
+            className={`px-5 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === "contact"
                 ? "bg-white text-blue-600 shadow-sm border border-blue-100"
                 : "text-gray-600 hover:text-blue-600 hover:bg-white/50"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <BuildingLibraryIcon className="h-5 w-5" />
@@ -481,11 +469,10 @@ export default function PortalPage() {
         =============================== */}
         {caseData.evaluation?.message && (
           <div
-            className={`border-2 rounded-xl p-6 ${
-              caseData.evaluation.result === "favorable"
+            className={`border-2 rounded-xl p-6 ${caseData.evaluation.result === "favorable"
                 ? "bg-emerald-50 border-emerald-200"
                 : "bg-red-50 border-red-200"
-            }`}
+              }`}
           >
             <div className="flex items-start gap-4">
               <div className="p-3 bg-white rounded-lg shadow-sm">
@@ -502,11 +489,10 @@ export default function PortalPage() {
                     Comunicación oficial del equipo jurídico
                   </h3>
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      caseData.evaluation.result === "favorable"
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${caseData.evaluation.result === "favorable"
                         ? "bg-emerald-100 text-emerald-800"
                         : "bg-red-100 text-red-800"
-                    }`}
+                      }`}
                   >
                     {caseData.evaluation.result === "favorable"
                       ? "Resultado favorable"
@@ -568,10 +554,10 @@ export default function PortalPage() {
                     {caseData.status === "pending"
                       ? "Su expediente está en fase inicial. Necesitamos su documentación para comenzar el análisis jurídico."
                       : caseData.status === "in_review"
-                      ? "Su documentación está siendo analizada por nuestro equipo de expertos en extranjería."
-                      : caseData.status === "favorable"
-                      ? "Nuestro análisis indica que su caso presenta viabilidad legal."
-                      : "Tras un análisis detallado, su expediente no resulta viable en este momento. Nuestro equipo podrá orientarle sobre alternativas."}
+                        ? "Su documentación está siendo analizada por nuestro equipo de expertos en extranjería."
+                        : caseData.status === "favorable"
+                          ? "Nuestro análisis indica que su caso presenta viabilidad legal."
+                          : "Tras un análisis detallado, su expediente no resulta viable en este momento. Nuestro equipo podrá orientarle sobre alternativas."}
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -760,23 +746,21 @@ export default function PortalPage() {
                 {timeline.map((event) => (
                   <div key={event.id} className="relative pl-12">
                     <div
-                      className={`absolute left-0 top-1 w-8 h-8 rounded-lg flex items-center justify-center ${
-                        event.status === "completed"
+                      className={`absolute left-0 top-1 w-8 h-8 rounded-lg flex items-center justify-center ${event.status === "completed"
                           ? "bg-emerald-100 text-emerald-600 border border-emerald-200"
                           : event.status === "current"
-                          ? "bg-blue-100 text-blue-600 border border-blue-200"
-                          : "bg-gray-100 text-gray-400 border border-gray-200"
-                      }`}
+                            ? "bg-blue-100 text-blue-600 border border-blue-200"
+                            : "bg-gray-100 text-gray-400 border border-gray-200"
+                        }`}
                     >
                       {event.icon}
                     </div>
 
                     <div
-                      className={`pb-6 ${
-                        event.id !== "4"
+                      className={`pb-6 ${event.id !== "4"
                           ? "border-l-2 border-gray-200 pl-6"
                           : ""
-                      }`}
+                        }`}
                     >
                       <h3 className="font-semibold text-gray-900">
                         {event.title}
@@ -792,8 +776,8 @@ export default function PortalPage() {
                           {event.status === "completed"
                             ? "Completado"
                             : event.status === "current"
-                            ? "En curso"
-                            : "Pendiente"}
+                              ? "En curso"
+                              : "Pendiente"}
                         </span>
                       </div>
                     </div>
@@ -920,10 +904,10 @@ export default function PortalPage() {
         =============================== */}
         {(caseData.status === "favorable" ||
           caseData.status === "not_favorable") && (
-          <div className="mt-8">
-            <PortalCTA status={caseData.status} />
-          </div>
-        )}
+            <div className="mt-8">
+              <PortalCTA status={caseData.status} />
+            </div>
+          )}
       </div>
     </PortalLayout>
   );
