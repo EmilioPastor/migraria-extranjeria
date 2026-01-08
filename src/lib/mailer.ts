@@ -22,7 +22,7 @@ export async function sendNewCaseEmail({
     console.log("📧 ENVIANDO EMAIL A:", to);
     console.log("📧 DESDE:", FROM);
 
-    const { data, error } = await resend.emails.send({
+    const {  error } = await resend.emails.send({
         from: FROM,
         to: [to], // 👈 IMPORTANTE: array
         subject: "Su expediente ha sido creado – MIGRARIA",
@@ -108,7 +108,7 @@ export async function sendEvaluationEmail({
 }) {
     const portalUrl = `${APP_URL}/portal/${token}`;
 
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
         from: FROM,
         to: [to], // 👈 IMPORTANTE
         subject: "Resolución de su expediente – MIGRARIA",
@@ -187,5 +187,4 @@ export async function sendEvaluationEmail({
         throw new Error("Error enviando email de evaluación");
     }
 
-    console.log("✅ EMAIL REGISTRADO EN RESEND:", data?.id);
 }
