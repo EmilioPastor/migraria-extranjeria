@@ -1,9 +1,11 @@
 "use client";
 
+import EditClientModal from "@/components/admin/EditClientModal";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import DocumentViewer from "@/components/admin/DocumentViewer";
+import DeleteClientModal from "@/components/admin/DeleteClientModal";
 
 /* ======================================================
    TIPOS (IGUAL)
@@ -18,6 +20,7 @@ type CaseStatus =
 type CaseData = {
   id: string;
   tramite: string;
+  tramite_key: string; // ✅ AÑADIDO
   status: CaseStatus;
   message: string | null;
   client?: {
@@ -58,6 +61,8 @@ export default function AdminCaseDetailPage() {
   const [caseData, setCaseData] = useState<CaseData | null>(null);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [events, setEvents] = useState<CaseEvent[]>([]);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const [message, setMessage] = useState("");
   const [decision, setDecision] = useState<
@@ -177,18 +182,26 @@ export default function AdminCaseDetailPage() {
                 Detalle completo del trámite • Migraria Legal
               </p>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <StatusBadge status={caseData.status} />
-              <button className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-medium">
-                <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
+              <button
+                onClick={() => setEditOpen(true)}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium"
+              >
                 Editar
               </button>
+              <button
+                onClick={() => setDeleteOpen(true)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"
+              >
+                Eliminar cliente
+              </button>
+
             </div>
           </div>
         </div>
+
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -239,29 +252,7 @@ export default function AdminCaseDetailPage() {
               </div>
             </div>
 
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Acciones Rápidas</h2>
-              <div className="space-y-3">
-                <button className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Marcar como Completado
-                </button>
-                <button className="w-full px-4 py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Generar Documento
-                </button>
-                <Link 
-                  href={`/admin/case/${id}/history`}
-                  className="block w-full px-4 py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-medium transition-colors text-center"
-                >
-                  Ver Historial Completo
-                </Link>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -284,7 +275,7 @@ export default function AdminCaseDetailPage() {
                   </span>
                 </div>
               </div>
-              
+
               <div className="divide-y divide-gray-100">
                 {documents.length === 0 ? (
                   <div className="p-8 text-center">
@@ -306,7 +297,7 @@ export default function AdminCaseDetailPage() {
                   ))
                 )}
               </div>
-              
+
               {documents.length > 0 && (
                 <div className="px-6 py-3 border-t border-gray-200 bg-gray-50">
                   <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
@@ -331,7 +322,7 @@ export default function AdminCaseDetailPage() {
                   Toma una decisión final sobre este caso
                 </p>
               </div>
-              
+
               <div className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -355,11 +346,10 @@ export default function AdminCaseDetailPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => setDecision("favorable")}
-                      className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                        decision === "favorable"
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                          : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50"
-                      }`}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 ${decision === "favorable"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                        : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50"
+                        }`}
                     >
                       <div className="flex flex-col items-center gap-2">
                         <svg className={`w-6 h-6 ${decision === "favorable" ? 'text-emerald-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,11 +362,10 @@ export default function AdminCaseDetailPage() {
 
                     <button
                       onClick={() => setDecision("not_favorable")}
-                      className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                        decision === "not_favorable"
-                          ? "border-red-500 bg-red-50 text-red-700"
-                          : "border-gray-200 hover:border-red-300 hover:bg-red-50"
-                      }`}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 ${decision === "not_favorable"
+                        ? "border-red-500 bg-red-50 text-red-700"
+                        : "border-gray-200 hover:border-red-300 hover:bg-red-50"
+                        }`}
                     >
                       <div className="flex flex-col items-center gap-2">
                         <svg className={`w-6 h-6 ${decision === "not_favorable" ? 'text-red-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -430,7 +419,7 @@ export default function AdminCaseDetailPage() {
                   Actividad Reciente
                 </h2>
               </div>
-              
+
               <div className="p-1">
                 {events.slice(0, 3).length === 0 ? (
                   <div className="p-6 text-center">
@@ -442,11 +431,10 @@ export default function AdminCaseDetailPage() {
                       <div key={ev.id} className="p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0 mt-1">
-                            <div className={`w-2 h-2 rounded-full ${
-                              ev.type.includes('created') ? 'bg-blue-500' :
+                            <div className={`w-2 h-2 rounded-full ${ev.type.includes('created') ? 'bg-blue-500' :
                               ev.type.includes('updated') ? 'bg-amber-500' :
-                              ev.type.includes('document') ? 'bg-emerald-500' : 'bg-gray-500'
-                            }`}></div>
+                                ev.type.includes('document') ? 'bg-emerald-500' : 'bg-gray-500'
+                              }`}></div>
                           </div>
                           <div>
                             <p className="font-medium text-gray-900">{ev.type}</p>
@@ -473,7 +461,7 @@ export default function AdminCaseDetailPage() {
                   </div>
                 )}
               </div>
-              
+
               {events.length > 3 && (
                 <div className="px-6 py-3 border-t border-gray-200 bg-gray-50">
                   <Link
@@ -491,6 +479,39 @@ export default function AdminCaseDetailPage() {
           </div>
         </div>
       </main>
+      <EditClientModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        caseId={caseData.id}
+        initialEmail={caseData.client?.email || ""}
+        initialTramite={caseData.tramite}
+        initialTramiteKey={caseData.tramite_key}
+        onUpdated={({ email, tramite }) => {
+          setCaseData((prev) =>
+            prev
+              ? {
+                ...prev,
+                tramite,
+                client: {
+                  ...prev.client,
+                  email,
+                },
+              }
+              : prev
+          );
+        }}
+      />
+      <DeleteClientModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        caseId={caseData.id}
+        onDeleted={() => {
+          setDeleteOpen(false);
+          window.location.href = "/admin/cases";
+        }}
+      />
+
+
     </div>
   );
 }
@@ -499,12 +520,13 @@ export default function AdminCaseDetailPage() {
    COMPONENTES AUXILIARES MEJORADOS
    ====================================================== */
 
+
 function StatusBadge({ status }: { status: string }) {
   const getStatusConfig = () => {
-    switch(status) {
+    switch (status) {
       case 'pending':
-        return { 
-          label: "Pendiente", 
+        return {
+          label: "Pendiente",
           color: "bg-blue-100 text-blue-700",
           icon: (
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -513,8 +535,8 @@ function StatusBadge({ status }: { status: string }) {
           )
         };
       case 'in_review':
-        return { 
-          label: "En Revisión", 
+        return {
+          label: "En Revisión",
           color: "bg-amber-100 text-amber-700",
           icon: (
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -523,8 +545,8 @@ function StatusBadge({ status }: { status: string }) {
           )
         };
       case 'favorable':
-        return { 
-          label: "Favorable", 
+        return {
+          label: "Favorable",
           color: "bg-emerald-100 text-emerald-700",
           icon: (
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -533,8 +555,8 @@ function StatusBadge({ status }: { status: string }) {
           )
         };
       case 'not_favorable':
-        return { 
-          label: "No Favorable", 
+        return {
+          label: "No Favorable",
           color: "bg-red-100 text-red-700",
           icon: (
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -543,8 +565,8 @@ function StatusBadge({ status }: { status: string }) {
           )
         };
       default:
-        return { 
-          label: status, 
+        return {
+          label: status,
           color: "bg-gray-100 text-gray-600",
           icon: (
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -557,7 +579,11 @@ function StatusBadge({ status }: { status: string }) {
 
   const config = getStatusConfig();
 
+
   return (
+
+
+
     <span className={`
       inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium
       ${config.color}

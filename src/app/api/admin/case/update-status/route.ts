@@ -1,15 +1,17 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { logAdminAction } from "@/lib/logAdminAction";
 import { documentosPorTramite } from "@/data/documentos";
+import { sendEvaluationEmail } from "@/lib/mailer";
 
 export async function POST(req: Request) {
   try {
-    const { caseId, status, adminEmail } = await req.json();
+    const body = await req.json();
+    const { caseId, status, adminEmail, message } = body;
 
-    if (!caseId || !status || !adminEmail) {
+    if (!caseId || !status) {
       return NextResponse.json(
         { error: "Datos incompletos" },
         { status: 400 }
@@ -18,10 +20,10 @@ export async function POST(req: Request) {
 
     const supabase = supabaseAdmin();
 
-    /* 1️⃣ Obtener el caso */
+    /* 1️⃣ Obtener caso */
     const { data: caseData, error: caseError } = await supabase
       .from("cases")
-      .select("id, tramite_key")
+      .select("id, tramite_key, client_id")
       .eq("id", caseId)
       .single();
 
@@ -32,7 +34,7 @@ export async function POST(req: Request) {
       );
     }
 
-    /* 2️⃣ Si se quiere pasar a in_review, comprobar documentos */
+    /* 2️⃣ Validación documentos */
     if (status === "in_review") {
       const tramiteKey =
         caseData.tramite_key as keyof typeof documentosPorTramite;
@@ -56,19 +58,19 @@ export async function POST(req: Request) {
 
       if (!allRequiredUploaded) {
         return NextResponse.json(
-          {
-            error:
-              "No se pueden revisar documentos: faltan obligatorios",
-          },
+          { error: "Faltan documentos obligatorios" },
           { status: 400 }
         );
       }
     }
 
-    /* 3️⃣ ACTUALIZAR ESTADO */
+    /* 3️⃣ Actualizar estado */
     const { error: updateError } = await supabase
       .from("cases")
-      .update({ status })
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", caseId);
 
     if (updateError) {
@@ -78,17 +80,81 @@ export async function POST(req: Request) {
       );
     }
 
-    /* 4️⃣ LOG */
-    await logAdminAction(
-      adminEmail,
-      "CASE_STATUS_CHANGED",
-      caseId,
-      { status }
-    );
+    /* 4️⃣ Guardar evaluación */
+    let evaluationInserted = false;
+
+    if (status === "favorable" || status === "not_favorable") {
+      const { error } = await supabase
+        .from("evaluations")
+        .insert({
+          case_id: caseId,
+          result: status,
+          message: message || null,
+          evaluated_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        console.error("❌ EVALUATION ERROR:", error);
+        return NextResponse.json(
+          { error: "No se pudo guardar la evaluación" },
+          { status: 500 }
+        );
+      }
+
+      evaluationInserted = true;
+    }
+
+    /* 5️⃣ Email del cliente */
+    const { data: clientData } = await supabase
+      .from("clients")
+      .select("email")
+      .eq("id", caseData.client_id)
+      .single();
+
+    /* 6️⃣ Token activo (SIN order by) */
+    const { data: tokenData } = await supabase
+      .from("access_tokens")
+      .select("token")
+      .eq("case_id", caseId)
+      .eq("used", false)
+      .limit(1)
+      .maybeSingle();
+
+    console.log("DEBUG evaluationInserted:", evaluationInserted);
+    console.log("DEBUG clientEmail:", clientData?.email);
+    console.log("DEBUG token:", tokenData?.token);
+
+    /* 7️⃣ Enviar email */
+    if (
+      evaluationInserted &&
+      clientData?.email &&
+      tokenData?.token
+    ) {
+      console.log("📧 ENVIANDO EMAIL EVALUACIÓN A:", clientData.email);
+
+      await sendEvaluationEmail({
+        to: clientData.email,
+        result: status,
+        message,
+        token: tokenData.token,
+      });
+
+      console.log("✅ EMAIL DE EVALUACIÓN ENVIADO");
+    }
+
+    /* 8️⃣ Log admin */
+    if (adminEmail) {
+      await logAdminAction(
+        adminEmail,
+        "CASE_STATUS_CHANGED",
+        caseId,
+        { status }
+      );
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("CASE STATUS ERROR:", err);
+    console.error("❌ CASE STATUS ERROR:", err);
     return NextResponse.json(
       { error: "Error interno" },
       { status: 500 }

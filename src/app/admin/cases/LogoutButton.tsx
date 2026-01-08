@@ -13,7 +13,7 @@ export default function LogoutButton() {
   };
 
   return (
-    <button className="text-red-600" onClick={logout}>
+    <button className=" text-white-600 font-bold border border-white-600 py-2 px-4 rounded" onClick={logout}>
       Cerrar sesión
     </button>
   );

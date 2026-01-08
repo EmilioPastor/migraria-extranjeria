@@ -1,9 +1,10 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
+import { sendNewCaseEmail } from "@/lib/mailer";
 
 export async function POST(req: Request) {
   try {
@@ -19,7 +20,9 @@ export async function POST(req: Request) {
 
     const supabase = supabaseAdmin();
 
-    /* CLIENTE */
+    /* ===============================
+       CLIENTE
+    =============================== */
     let clientId: string;
 
     const { data: existingClient } = await supabase
@@ -47,7 +50,9 @@ export async function POST(req: Request) {
       clientId = newClient.id;
     }
 
-    /* CASO */
+    /* ===============================
+       CASO
+    =============================== */
     const { data: newCase, error: caseError } = await supabase
       .from("cases")
       .insert({
@@ -66,7 +71,9 @@ export async function POST(req: Request) {
       );
     }
 
-    /* TOKEN */
+    /* ===============================
+       TOKEN
+    =============================== */
     const token = randomUUID();
 
     const { error: tokenError } = await supabase
@@ -87,14 +94,28 @@ export async function POST(req: Request) {
       );
     }
 
-    /* EVENTO */
+    /* ===============================
+       EVENTO
+    =============================== */
     await supabase.from("case_events").insert({
       case_id: newCase.id,
       type: "CASE_CREATED",
       description: "Caso creado por el administrador",
     });
 
-    /* 🔥 invalidar caché */
+    /* ===============================
+       EMAIL CLIENTE (PORTAL)
+    =============================== */
+    try {
+      await sendNewCaseEmail({
+        to: clientEmail,
+        tramite,
+        token,
+      });
+    } catch (e) {
+      console.error("EMAIL NEW CASE ERROR:", e);
+    }
+
     revalidatePath("/admin/cases");
 
     return NextResponse.json({
