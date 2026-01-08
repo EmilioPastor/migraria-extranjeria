@@ -3,21 +3,35 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { logAdminAction } from "@/lib/logAdminAction";
+import { requireAdminApi } from "@/lib/requireAdminApi";
 
 export async function DELETE(req: Request) {
   try {
-    const { caseId, adminEmail } = await req.json();
+    /* 🔐 1️⃣ Verificación de admin REAL */
+    const auth = await requireAdminApi(req);
 
-    if (!caseId || !adminEmail) {
+    if ("error" in auth) {
       return NextResponse.json(
-        { error: "Datos incompletos" },
+        { error: auth.error },
+        { status: auth.status }
+      );
+    }
+
+    const { user, admin } = auth;
+
+    /* 📦 2️⃣ Body */
+    const { caseId } = await req.json();
+
+    if (!caseId) {
+      return NextResponse.json(
+        { error: "caseId requerido" },
         { status: 400 }
       );
     }
 
     const supabase = supabaseAdmin();
 
-    /* 1️⃣ Obtener case + client */
+    /* 🔍 3️⃣ Obtener caso + cliente */
     const { data: caseData, error: caseError } = await supabase
       .from("cases")
       .select("id, client_id")
@@ -31,7 +45,7 @@ export async function DELETE(req: Request) {
       );
     }
 
-    /* 2️⃣ Eliminar caso */
+    /* 🗑️ 4️⃣ Eliminar caso */
     const { error: caseDeleteError } = await supabase
       .from("cases")
       .delete()
@@ -44,7 +58,7 @@ export async function DELETE(req: Request) {
       );
     }
 
-    /* 3️⃣ Eliminar cliente */
+    /* 🗑️ 5️⃣ Eliminar cliente */
     const { error: clientDeleteError } = await supabase
       .from("clients")
       .delete()
@@ -57,12 +71,14 @@ export async function DELETE(req: Request) {
       );
     }
 
-    /* 4️⃣ Log */
+    /* 🧾 6️⃣ Log inmutable */
     await logAdminAction(
-      adminEmail,
+      user.email ?? "unknown",
       "CLIENT_DELETED",
       caseId,
-      {}
+      {
+        role: admin.role,
+      }
     );
 
     return NextResponse.json({ ok: true });

@@ -9,92 +9,183 @@ const APP_URL = process.env.APP_URL!;
    EMAIL NUEVO EXPEDIENTE
 =============================== */
 export async function sendNewCaseEmail({
-  to,
-  tramite,
-  token,
+    to,
+    tramite,
+    token,
 }: {
-  to: string;
-  tramite: string;
-  token: string;
+    to: string;
+    tramite: string;
+    token: string;
 }) {
-  const portalUrl = `${APP_URL}/portal/${token}`;
+    const portalUrl = `${APP_URL}/portal/${token}`;
 
-  console.log("📧 ENVIANDO EMAIL A:", to);
-  console.log("📧 DESDE:", FROM);
+    console.log("📧 ENVIANDO EMAIL A:", to);
+    console.log("📧 DESDE:", FROM);
 
-  const { data, error } = await resend.emails.send({
-    from: FROM,
-    to: [to], // 👈 IMPORTANTE: array
-    subject: "Su expediente ha sido creado – MIGRARIA",
-    html: `
-      <h2>Su expediente ha sido creado</h2>
-      <p><strong>Trámite:</strong> ${tramite}</p>
-      <p>Puede acceder a su portal personal aquí:</p>
-      <p>
-        <a href="${portalUrl}" target="_blank">
-          Acceder a mi expediente
-        </a>
-      </p>
-      <p>MIGRARIA Extranjería</p>
-    `,
-  });
+    const { data, error } = await resend.emails.send({
+        from: FROM,
+        to: [to], // 👈 IMPORTANTE: array
+        subject: "Su expediente ha sido creado – MIGRARIA",
+        html: `
+  <div style="font-family: Arial, Helvetica, sans-serif; background:#f5f7fa; padding:40px 0;">
+    <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:8px; overflow:hidden;">
+      
+      <div style="background:#0f2a44; padding:24px;">
+        <h1 style="color:#ffffff; margin:0; font-size:20px;">
+          MIGRARIA · Extranjería
+        </h1>
+      </div>
 
-  console.log("📨 RESEND DATA:", data);
-  console.log("❌ RESEND ERROR:", error);
+      <div style="padding:32px; color:#1f2937;">
+        <p style="font-size:15px;">
+          Estimado/a cliente,
+        </p>
 
-  if (error) {
-    throw new Error("Error enviando email de nuevo expediente");
-  }
+        <p style="font-size:15px; line-height:1.6;">
+          Le informamos de que su expediente ha sido <strong>creado correctamente</strong> en
+          <strong>MIGRARIA Extranjería</strong>.
+        </p>
 
-  console.log("✅ EMAIL REGISTRADO EN RESEND:", data?.id);
+        <p style="font-size:15px; line-height:1.6;">
+          <strong>Trámite solicitado:</strong><br/>
+          ${tramite}
+        </p>
+
+        <p style="font-size:15px; line-height:1.6;">
+          A partir de ahora podrá consultar el estado de su expediente, subir documentación
+          y recibir comunicaciones oficiales a través de su portal personal.
+        </p>
+
+        <div style="text-align:center; margin:32px 0;">
+          <a href="${portalUrl}"
+             style="background:#2563eb; color:#ffffff; padding:14px 28px;
+                    text-decoration:none; border-radius:6px; font-weight:bold;">
+            Acceder a mi expediente
+          </a>
+        </div>
+
+        <p style="font-size:14px; color:#4b5563;">
+          Por motivos de seguridad, este enlace es personal y no debe compartirse.
+        </p>
+
+        <p style="font-size:15px; margin-top:32px;">
+          Atentamente,<br/>
+          <strong>Equipo Legal MIGRARIA</strong><br/>
+          Departamento de Extranjería
+        </p>
+      </div>
+
+      <div style="background:#f3f4f6; padding:16px; text-align:center; font-size:12px; color:#6b7280;">
+        © MIGRARIA Extranjería · Comunicación confidencial
+      </div>
+    </div>
+  </div>
+`
+
+    });
+
+
+
+    if (error) {
+        throw new Error("Error enviando email de nuevo expediente");
+    }
+
 }
 
 /* ===============================
    EMAIL EVALUACIÓN
 =============================== */
 export async function sendEvaluationEmail({
-  to,
-  result,
-  message,
-  token,
+    to,
+    result,
+    message,
+    token,
 }: {
-  to: string;
-  result: "favorable" | "not_favorable";
-  message?: string | null;
-  token: string;
+    to: string;
+    result: "favorable" | "not_favorable";
+    message?: string | null;
+    token: string;
 }) {
-  const portalUrl = `${APP_URL}/portal/${token}`;
+    const portalUrl = `${APP_URL}/portal/${token}`;
 
-  const { data, error } = await resend.emails.send({
-    from: FROM,
-    to: [to], // 👈 IMPORTANTE
-    subject: "Resolución de su expediente – MIGRARIA",
-    html: `
-      <h2>Resolución del expediente</h2>
-      <p><strong>Resultado:</strong> ${
-        result === "favorable" ? "Favorable" : "No favorable"
-      }</p>
-      ${
-        message
-          ? `<p><strong>Mensaje del equipo:</strong><br/>${message}</p>`
-          : ""
-      }
-      <p>Puede consultar el detalle en su portal:</p>
-      <p>
-        <a href="${portalUrl}" target="_blank">
-          Ver mi expediente
-        </a>
-      </p>
-      <p>MIGRARIA Extranjería</p>
-    `,
-  });
+    const { data, error } = await resend.emails.send({
+        from: FROM,
+        to: [to], // 👈 IMPORTANTE
+        subject: "Resolución de su expediente – MIGRARIA",
+        html: `
+  <div style="font-family: Arial, Helvetica, sans-serif; background:#f5f7fa; padding:40px 0;">
+    <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:8px; overflow:hidden;">
+      
+      <div style="background:#0f2a44; padding:24px;">
+        <h1 style="color:#ffffff; margin:0; font-size:20px;">
+          MIGRARIA · Extranjería
+        </h1>
+      </div>
 
-  console.log("📨 RESEND DATA:", data);
-  console.log("❌ RESEND ERROR:", error);
+      <div style="padding:32px; color:#1f2937;">
+        <p style="font-size:15px;">
+          Estimado/a cliente,
+        </p>
 
-  if (error) {
-    throw new Error("Error enviando email de evaluación");
-  }
+        <p style="font-size:15px; line-height:1.6;">
+          Le comunicamos que su expediente ha sido <strong>evaluado por nuestro equipo jurídico</strong>.
+        </p>
 
-  console.log("✅ EMAIL REGISTRADO EN RESEND:", data?.id);
+        <p style="font-size:15px; line-height:1.6;">
+          <strong>Resultado de la evaluación:</strong><br/>
+          ${result === "favorable"
+                ? "<span style='color:#047857; font-weight:bold;'>Favorable</span>"
+                : "<span style='color:#b91c1c; font-weight:bold;'>No favorable</span>"
+            }
+        </p>
+
+        ${message
+                ? `
+              <div style="background:#f9fafb; border-left:4px solid #2563eb;
+                          padding:16px; margin:24px 0;">
+                <p style="margin:0; font-size:14px; line-height:1.6;">
+                  <strong>Mensaje del equipo legal:</strong><br/>
+                  ${message}
+                </p>
+              </div>
+            `
+                : ""
+            }
+
+        <p style="font-size:15px; line-height:1.6;">
+          Puede consultar el detalle completo del expediente y los siguientes pasos
+          accediendo a su portal personal.
+        </p>
+
+        <div style="text-align:center; margin:32px 0;">
+          <a href="${portalUrl}"
+             style="background:#2563eb; color:#ffffff; padding:14px 28px;
+                    text-decoration:none; border-radius:6px; font-weight:bold;">
+            Ver mi expediente
+          </a>
+        </div>
+
+        <p style="font-size:15px; margin-top:32px;">
+          Quedamos a su disposición para cualquier aclaración.<br/><br/>
+          Atentamente,<br/>
+          <strong>Equipo Legal MIGRARIA</strong><br/>
+          Departamento de Extranjería
+        </p>
+      </div>
+
+      <div style="background:#f3f4f6; padding:16px; text-align:center; font-size:12px; color:#6b7280;">
+        © MIGRARIA Extranjería · Comunicación confidencial · No responder a este correo
+      </div>
+    </div>
+  </div>
+`
+    });
+
+
+
+    if (error) {
+        throw new Error("Error enviando email de evaluación");
+    }
+
+    console.log("✅ EMAIL REGISTRADO EN RESEND:", data?.id);
 }
