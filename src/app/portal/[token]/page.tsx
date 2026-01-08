@@ -88,8 +88,6 @@ export default function PortalPage() {
   useEffect(() => {
     if (!token) return;
 
-    let interval: NodeJS.Timeout;
-
     const loadCase = async () => {
       try {
         setLoading(true);
@@ -97,6 +95,10 @@ export default function PortalPage() {
 
         const response = await fetch(`/api/portal/case?token=${token}`, {
           cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache"
+          }
         });
 
         const json = await response.json();
@@ -106,19 +108,22 @@ export default function PortalPage() {
           throw new Error(json?.error || "Error cargando su expediente");
         }
 
-        setCaseData({
+        const enhancedData = {
           ...data,
-          case_number: data.case_number || `MG-${data.id.slice(-8).toUpperCase()}`,
-          client_name: data.client_name || "Estimado cliente",
-        });
+          case_number:
+            data.case_number || `MG-${data.id.slice(-8).toUpperCase()}`,
+          client_name: data.client_name || "Estimado cliente"
+        };
 
+        setCaseData(enhancedData);
         setLastUpdated(
           new Date().toLocaleTimeString("es-ES", {
             hour: "2-digit",
-            minute: "2-digit",
+            minute: "2-digit"
           })
         );
       } catch (e) {
+        console.error("PORTAL ERROR:", e);
         setError(e instanceof Error ? e.message : "Error de conexión");
       } finally {
         setLoading(false);
@@ -127,10 +132,14 @@ export default function PortalPage() {
 
     loadCase();
 
-    interval = setInterval(loadCase, 30000);
+    const interval = setInterval(() => {
+      if (token && !loading) {
+        loadCase();
+      }
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, [token]);
+  }, [token, loading]); // ← Aquí se añade 'loading' al array de dependencias
 
 
   /* ===============================
