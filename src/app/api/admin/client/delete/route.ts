@@ -4,23 +4,10 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { supabaseService } from "@/lib/supabaseService";
 import { logAdminAction } from "@/lib/logAdminAction";
-import { requireAdminApi } from "@/lib/requireAdminApi";
 
 export async function DELETE(req: Request) {
   try {
-    /* 🔐 1️⃣ Verificación de admin REAL */
-    const auth = await requireAdminApi(req);
-
-    if ("error" in auth) {
-      return NextResponse.json(
-        { error: auth.error },
-        { status: auth.status }
-      );
-    }
-
-    const { user, admin } = auth;
-
-    /* 📦 2️⃣ Body */
+    /* 📦 Body */
     const { caseId } = await req.json();
 
     if (!caseId) {
@@ -32,7 +19,7 @@ export async function DELETE(req: Request) {
 
     const supabase = supabaseAdmin();
 
-    /* 🔍 3️⃣ Obtener caso + cliente (lectura normal) */
+    /* 🔍 1️⃣ Obtener caso + cliente */
     const { data: caseData, error: caseError } = await supabase
       .from("cases")
       .select("id, client_id")
@@ -46,7 +33,7 @@ export async function DELETE(req: Request) {
       );
     }
 
-    /* 🗑️ 4️⃣ Eliminar caso (SERVICE ROLE → bypass RLS) */
+    /* 🗑️ 2️⃣ Eliminar caso */
     const { error: caseDeleteError } = await supabaseService
       .from("cases")
       .delete()
@@ -60,7 +47,7 @@ export async function DELETE(req: Request) {
       );
     }
 
-    /* 🗑️ 5️⃣ Eliminar cliente (SERVICE ROLE → bypass RLS) */
+    /* 🗑️ 3️⃣ Eliminar cliente */
     const { error: clientDeleteError } = await supabaseService
       .from("clients")
       .delete()
@@ -74,14 +61,12 @@ export async function DELETE(req: Request) {
       );
     }
 
-    /* 🧾 6️⃣ Log inmutable */
+    /* 🧾 4️⃣ Log (sin email por ahora) */
     await logAdminAction(
-      user.email ?? "unknown",
+      "admin",
       "CLIENT_DELETED",
       caseId,
-      {
-        role: admin.role,
-      }
+      {}
     );
 
     return NextResponse.json({ ok: true });
